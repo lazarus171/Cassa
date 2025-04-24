@@ -1,0 +1,137 @@
+from escpos.printer import Network
+
+def reduct_ord(ordine):
+    'Restituisce la comanda senza righe vuote'
+    result=[]
+    for item in ordine:
+        if item[3]!=0:
+            result.append(item)
+    return result
+
+
+def bcs(num):
+    'Crea un codice a barre in formato EAN8 corretto'
+    mult = [3, 1, 3, 1, 3, 1, 3]
+    s1 = '40'
+    s2 = str(num)
+    last=''
+    while len(s2)<5:
+        s2 = '0'+s2
+    s=s1+s2
+    tot=0
+    for i in range(len(s)):
+        parz = int(s[i])*mult[i]
+        tot=tot+parz
+    resto = tot%10
+    if resto == 0:
+        last = '0'
+    else:
+        last = str(10-resto)
+    s = s+last
+    return s
+
+def converti(testa, coda):
+    'Converte i dati in stringhe stampabili su scontrino'
+    centro = ' '*(46-len(testa)-len(coda))
+    res = testa+centro+coda
+    return res
+    
+def st_intest(vretti, tipo):
+    'Stampa la stringa come intestazione di scontrino'
+    #Sceglie la stringa in base al tipo (0=cliente, 1=cucina, 2=bar, 3=sconto)
+    if tipo == 0 or tipo == 3:
+        stringa="ASSOCIAZIONE NAZIONALE ALPINI\nGruppo \"S. Zollet\"\nSanta Giustina"
+    elif tipo == 1:
+        stringa = 'COMANDA CUCINA'
+    elif tipo == 2:
+        stringa = 'COMANDA BAR'
+    elif tipo == 3:
+        stringa = 'BUONO SCONTO - RESTO'
+    #Controllo connessione attiva
+    if vretti.is_online() == False:
+        vretti.open()
+    vretti.set('center', #align
+                'a', #font
+                True, #bold
+                0, #underline
+                1, #width
+                1, #height
+                8, #densità
+                False, #invert
+                False, #smooth
+                False, #flip
+                True, #normal_textsize
+                False, #double_width
+                False, #double_height
+                False, #custom_size
+                )
+    vretti.textln(stringa)
+    vretti.ln(3)
+
+def st_fondo(vretti, stringa, tipo):
+    'Stampa la stringa come fondo di scontrino'
+    
+    #Controllo connessione attiva
+    if vretti.is_online() == False:
+        vretti.open()
+    vretti.set('center', #align
+                'a', #font
+                True, #bold
+                0, #underline
+                1, #width
+                1, #height
+                8, #densità
+                False, #invert
+                False, #smooth
+                False, #flip
+                True, #normal_textsize
+                False, #double_width
+                False, #double_height
+                False, #custom_size
+                )
+    vretti.ln(2)
+    #Sceglie la stringa in base al tipo (0=cliente, 1=cucina, 2=bar, 3=sconto)
+    if tipo == 0 or tipo == 3:
+        vretti.textln('ARRIVEDERCI E GRAZIE!')
+    elif tipo == 1:
+        vretti.barcode(stringa, 'EAN8', 255, 6, 'BELOW', 'A',True)
+        vretti.buzzer(3, 2)
+    elif tipo == 2:
+        vretti.textln('Copia per il bar')
+    vretti.cut()
+    vretti.close()
+
+def st_corpo(vretti, str_list):
+    'Stampa il corpo di scontrino'
+    #Controllo di connessione attiva
+    if vretti.is_online() == False:
+        vretti.open()
+    vretti.set_with_default()
+    for item in str_list:
+        vretti.textln(item)
+
+def st_sconto(vretti, str_list):
+    'Stampa il corpo del buono resto'
+    #Controllo di connessione attiva
+    if vretti.is_online() == False:
+        vretti.open()
+    vretti.set('center', #align
+                'a', #font
+                True, #bold
+                0, #underline
+                1, #width
+                1, #height
+                8, #densità
+                False, #invert
+                False, #smooth
+                False, #flip
+                False, #normal_textsize
+                True, #double_width
+                True, #double_height
+                False, #custom_size
+                )
+    for item in str_list:
+        vretti.textln(item)      
+
+
+

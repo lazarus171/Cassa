@@ -1,0 +1,42 @@
+***	ICONE
+icn	Cappello.ico
+***	DISPENSA
+dsp	pane	15
+dsp	pastin	15
+dsp	pasticcio	15
+dsp	crespelle	15
+dsp	schiz	15
+dsp	spiedo	0
+***	STAMPANTI
+prn	kit	192.168.1.102	9100	60
+prn	cas	192.168.1.102	9100	60
+***	LISTINO
+lst	c	Panino freddo	3.00	pane	1
+lst	c	Panino pastin	4.00	pane	1	pastin	1
+lst	c	Panino ONTO	5.00	pane	1	pastin	1
+lst	c	Panino SLUDRO	6.00	pane	1	pastin	1
+lst	c	Pasticcio al ragu	6.00	pasticcio	1
+lst	c	Crespelle zucca e noci	6.00	crespelle	3
+lst	c	Pastin con polenta	7.50	pastin	2
+lst	c	Formaggio alla piastra	7.50
+lst	c	Schiz con polenta	8.00	schiz	2
+lst	c	Spiedo con polenta	12.00	spiedo	1
+lst	c	Patate fritte	3.00
+lst	b	Fetta di torta	2.50
+lst	b	Birra - 0,20L	2.00
+lst	b	Birra - caraffa 1L	10.00
+lst	b	Vino - ombra	1.00
+lst	b	Vino - mezzo litro	3.00
+lst	b	Vino - un litro	6.00
+lst	b	Bibite in lattina	2.50
+lst	b	Acqua - mezzo litro	1.00
+lst	b	Caffe	1.00
+lst	b	Prosecco - calice	1.50
+lst	b	Prosecco - bottiglia	9.00
+***	SCONTISTICA
+scn	Nessuno	0.00
+scn	Buono volontari	8.00
+scn	Buono rancio	0.00
+scn	Buono 50 cent	0.50
+scn	Buono ciclisti	6.00
+

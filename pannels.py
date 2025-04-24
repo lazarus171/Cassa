@@ -1,0 +1,607 @@
+import tkinter as tk
+import tkinter.ttk as ttk
+import tkinter.filedialog as fdg
+from escpos.printer import Network
+from funz_cassa import *
+from PIL import Image, ImageTk
+
+class Composer:
+##    Imposta le variabili di classe
+    pricelist = []
+    alert = []
+    progress = 0
+    registry = ''
+    icon = ''
+    kit_prn=''
+    cas_prn=''
+    discounts=[]
+    galley={}
+    cons={}
+    ok = False # se False salta le stampe
+    
+##    Calcolate internamente alla classe
+    connvar = []
+    total = 0
+    order = []
+    disc_var = 0
+    disc_type = 0
+    disc_amount=0
+    ticket = 0.00
+    alert_img = []
+    takeaway = False
+    gal_add = []
+
+    def __init__(self):
+##        Legge i file di configurazione e di registrazione
+        self.cnfdir = fdg.askdirectory(title='Cartella contenente i files di configurazione')
+        self.cnf_file = self.cnfdir+'/config.txt'
+        Composer.registry = self.cnfdir+'/registry.txt'
+        self.cfile=open(self.cnf_file)
+##        Carica il file di configurazione e lo legge
+        while True:
+            self.line = self.cfile.readline()
+            if self.line == '' or self.line == '\n':#se arrivato alla fine...
+                self.cfile.close()
+                break
+            else:
+                self.line = self.line.removesuffix('\n')
+                self.line = self.line.split('\t')
+##        Inizializza la dispensa
+                if self.line[0] == 'dsp':
+                    Composer.galley[self.line[1]] = int(self.line[2])
+##        Inizializza l'icona x l'app
+                elif self.line[0] == 'icn':
+                    Composer.icon = self.cnfdir+'/'+self.line[1]
+##        Inizializza le stampanti
+                elif self.line[0] == 'prn':
+                    if self.line[1] == 'kit':
+                        Composer.kit_prn = Network(self.line[2], int(self.line[3]), int(self.line[4]))
+                    elif self.line[1] == 'cas':
+                        Composer.cas_prn = Network(self.line[2], int(self.line[3]), int(self.line[4]))
+##        Inizializza la scontistica
+                elif self.line[0] == 'scn':
+                    self.trash = self.line.pop(0)
+                    self.line[1] = float(self.line[1])
+                    Composer.discounts.append(self.line)
+##        Inizializza il listino compresi gli ingredienti in dispensa
+                elif self.line[0] == 'lst':
+                    self.trash = self.line.pop(0)
+                    self.line[2]=float(self.line[2])
+                    if len(self.line) == 3:
+                        self.line = self.line + [0, 0.00, [], '', '', '']
+                    else:
+                        self.subline = self.line[3:]
+                        self.line = self.line[:3]
+                        self.sublist=[]
+                        for n in range(0, len(self.subline), 2):
+                            self.ingred=[self.subline[n], int(self.subline[n+1])]
+                            self.sublist.append(self.ingred)
+                        self.line = self.line + [0, 0.00, self.sublist, '', '', '']
+                    Composer.pricelist.append(self.line)
+                    Composer.alert.append(0)
+                    
+##        Imposta il progressivo di scontrino
+        self.cfile=open(Composer.registry)
+        self.current = self.cfile.readline()
+        if self.current == '' or self.current =='\n':
+            self.cfile.close()
+            Composer.progr = 0
+        else:
+            while True:
+                self.next_=self.cfile.readline()
+                if self.next_=='' or self.next_=='\n':
+                    self.cfile.close()
+                    self.current=self.current.removesuffix('\n')
+                    self.current=self.current.split('\t')
+                    Composer.progress = int(self.current[-1])
+                    break
+                else:
+                    self.current = self.next_
+        
+##        Imposta le variabili di istanza
+##        Lancia la finestra di composizione della comanda
+        self.w = tk.Tk()
+        self.w.iconbitmap(Composer.icon)
+        self.w.title('Composizione comanda')
+        self.frame = tk.Frame(self.w)
+        self.frame.pack(fill = 'both', expand = 1)
+        self.c_list = []
+        self.b_list = []
+
+##        Imposta la lista delle luci di allerta
+        self.image=Image.open(self.cnfdir+'/green_b.png')
+        self.image = self.image.resize((28, 28))
+        self.ph = ImageTk.PhotoImage(self.image)
+        Composer.alert_img.append(self.ph)
+        self.image=Image.open(self.cnfdir+'/yellow_b.png')
+        self.image = self.image.resize((28, 28))
+        self.ph = ImageTk.PhotoImage(self.image)
+        Composer.alert_img.append(self.ph)
+        self.image=Image.open(self.cnfdir+'/red_b.png')
+        self.image = self.image.resize((28, 28))
+        self.ph = ImageTk.PhotoImage(self.image)
+        Composer.alert_img.append(self.ph)
+
+##        Crea i frame per il packaging
+        self.t_frame = tk.Frame(self.frame, bg='green')## superiore
+        self.l_frame = tk.Frame(self.frame, bg='olivedrab1')## sinistro
+        self.llight_frame = tk.Frame(self.frame, bg='olivedrab1')## sinistro luci
+        self.lc_frame = tk.Frame(self.frame, bg='olivedrab1')## centrale sinistro
+        self.cr_frame = tk.Frame(self.frame, bg='olivedrab2')## centrale destro
+        self.rlight_frame = tk.Frame(self.frame, bg='olivedrab2')## destro luci
+        self.r_frame = tk.Frame(self.frame, bg='olivedrab2')## destro
+        self.b_frame = tk.Frame(self.frame, bg='salmon')## inferiore
+        self.l_subfr = tk.Frame(self.b_frame, bg='lightsalmon')## inferiore sinistro
+        self.c_subfr = tk.Frame(self.b_frame, bg='lightsalmon')##inferiore centrale
+        self.r_subfr = tk.Frame(self.b_frame, bg='lightsalmon')## inferiore destro
+        self.l_subfr.pack(side='left', fill='both', expand=1)
+        self.c_subfr.pack(side='left', fill='both', expand=1)
+        self.r_subfr.pack(side='left', fill='both', expand=1)
+
+        self.t_lab=tk.Label(self.t_frame, text='Gruppo Alpini "Sincero Zollet" - Santa Giustina', font=('Times', 24, 'bold'), fg='gold', bg='green')
+        self.t_lab.pack()
+
+        self.ffont=('Times', 18)
+
+        for self.i in range(len(Composer.pricelist)):
+            self.item = tk.IntVar(self.frame, value = 0)
+            Composer.connvar.append(self.item)  
+##            Imposta la giusta lista e i relativi frame
+            self.item=Composer.pricelist[self.i]
+            if self.item[0] == 'c':
+                self.lista = self.c_list
+                self.lab_fr = self.l_frame
+                self.light_fr = self.llight_frame
+                self.spin_fr = self.lc_frame
+            elif self.item[0]=='b':
+                self.lista = self.b_list
+                self.lab_fr = self.cr_frame
+                self.light_fr = self.rlight_frame
+                self.spin_fr = self.r_frame
+##            Crea i widget, li assegna alla lista e collega gli spinbox
+            self.item[6] = tk.Label(self.lab_fr, text=self.item[1], font=self.ffont, bg=self.lab_fr.cget('bg'))
+            self.item[7] = tk.Label(self.light_fr, image = Composer.alert_img[Composer.alert[self.i]], bg=self.light_fr.cget('bg'))
+            self.spin = ttk.Spinbox(self.spin_fr, from_='-10', to='10', font=self.ffont, width=6)
+            self.spin['textvariable']=Composer.connvar[self.i]
+            self.item[8] = self.spin
+            self.lista.append([self.item[6], self.item[7], self.item[8]])
+            Composer.pricelist[self.i] = self.item
+##        Aggiorna lo stato delle luci
+        self.alert_update()        
+##        Crea i pulsanti sulla barra inferiore
+        self.p_left=tk.Button(self.l_subfr, text='MOSTRA ORDINE', font=self.ffont, padx=10, pady=5,
+                              command=self.show_order)
+        self.p_left1=tk.Button(self.l_subfr, text='DISPENSA', font=self.ffont, padx=10, pady=5,
+                               command=self.galley_status)
+        self.p_center=tk.Button(self.c_subfr, text='RESET', font=self.ffont, padx=10, pady=5,
+                                command=self.reset_display)
+        self.p_center1=tk.Button(self.c_subfr, text='CENTER 1', font=self.ffont, padx=10, pady=5)
+        self.p_right=tk.Button(self.r_subfr, text='AVANTI', font=self.ffont, padx=10, pady=5,
+                               command=self.update)
+        self.p_right1=tk.Button(self.r_subfr, text='CHIUSURA', font=self.ffont, padx=10, pady=5,
+                                command=self.day_close)
+        self.p_left.pack(side='left', fill='none', expand=1)
+        self.p_left1.pack(side='right', fill='none', expand=1)
+        self.p_center.pack(side='left', fill='none', expand=1)
+        self.p_center1.pack(side='right', fill='none', expand=1)
+        self.p_right.pack(side='left', fill='none', expand=1)
+        self.p_right1.pack(side='right', fill='none', expand=1)
+##        Esegue il packaging dei widget
+        for self.item in self.c_list:
+            self.item[0].pack(padx=10, pady=10)
+            self.item[1].pack(expand=0, padx=10, pady=10)
+            self.item[2].pack(expand=0, padx=10, pady=10)        
+        for self.item in self.b_list:
+            self.item[0].pack(expand=0, padx=10, pady=10)
+            self.item[1].pack(padx=10, pady=10)
+            self.item[2].pack(padx=10, pady=10)
+##        Esegue il packaging dei frame
+        self.t_frame.pack(side='top', fill='both', expand=1)
+        self.b_frame.pack(side='bottom', fill='both', expand=1)
+        self.l_frame.pack(side='left', fill='both', expand=1)
+        self.llight_frame.pack(side='left', fill='both', expand=1)
+        self.lc_frame.pack(side='left', fill='both', expand=1)
+        self.r_frame.pack(side='right', fill='both', expand=1)
+        self.rlight_frame.pack(side='right', fill='both', expand=1)
+        self.cr_frame.pack(side='right', fill='both', expand=1)
+        self.w.mainloop()
+        
+    def update(self):
+##        Procede con la composizione registrando i dati nella classe
+##        Imposta il numero di scontrino
+        Composer.progress += 1
+        Composer.order = []
+##        Calcola i parziali dell'ordine
+        for self.i in range(len(Composer.connvar)):
+            self.line = Composer.pricelist[self.i]
+            self.line[3] = Composer.connvar[self.i].get()
+            self.line[4]=self.line[3]*self.line[2]
+            Composer.order.append(self.line)
+##        Calcola il totale dell'ordine
+        self.tot = 0
+        for self.item in Composer.order:
+            self.tot = self.tot + self.item[4]
+        Composer.total = self.tot
+##        Lancia la finestra di scelta della scontistica
+        self.set_discount()
+    
+    def reset_display(self):
+##        Riporta il sistema alle condizioni iniziali
+        for self.item in Composer.connvar:
+            self.item.set(0)
+        for self.i in range(len(Composer.pricelist)):
+            self.line = Composer.pricelist[self.i]
+            self.line[3] = 0
+            Composer.pricelist[self.i] = self.line
+
+    
+    def set_discount(self):
+##        Imposta il tipo e l'entità dello sconto
+        self.wd=tk.Tk()
+        self.wd.iconbitmap(Composer.icon)
+        self.wd.title('Impostazione opzioni')
+        self.w.attributes(disabled=1)## disabilita la finestra di composizione
+        self.wd.attributes(toolwindow=1)## permette solo la pressione sul pulsante in basso
+        self.dscfont=('Times', 18)
+        self.cb_var = tk.BooleanVar(self.wd, value=False)
+##        Crea i frame
+        self.upperframe=tk.Frame(self.wd, bg='aquamarine1')
+        self.leftframe=tk.Frame(self.wd, bg='aquamarine2')
+        self.rightframe = tk.Frame(self.wd,  bg='aquamarine2')
+        self.lowerframe=tk.Frame(self.wd, bg='aquamarine3')
+##        Esegue il packaging dei frame
+        self.upperframe.pack(side='top', fill='both', expand=1)
+        self.lowerframe.pack(side='bottom', fill='both', expand=1)
+        self.leftframe.pack(side='left', fill='both', expand=1)
+        self.rightframe.pack(side='right', fill='both', expand=1)
+##        Crea i widget e le variabili necessarie)
+        self.cbox=tk.Checkbutton(self.upperframe, variable = self.cb_var,
+                                 text='Asporto', font = self.dscfont, bg=self.upperframe.cget('bg'),
+                                 activebackground=self.upperframe.cget('bg'))
+        self.boxlist = []
+        Composer.disc_var = tk.IntVar(self.wd, value = 1)
+        for item in Composer.discounts:
+            self.boxlist.append(item[0])
+        self.lblabel = tk.Label(self.leftframe, text='Tipo sconto', font = self.dscfont, bg=self.leftframe.cget('bg'))
+        self.lbox=ttk.Combobox(self.rightframe, values = self.boxlist, font = self.dscfont, width=15)
+        self.lbox.current(0)
+        self.lbox.bind("<<ComboboxSelected>>", self.callback)
+        self.spinlabel = tk.Label(self.leftframe, text='N° buoni', font = self.dscfont, bg=self.leftframe.cget('bg'))
+        self.spin = ttk.Spinbox(self.rightframe, from_=1, to=10, font=self.dscfont, width=5)
+        self.spin['textvariable']=Composer.disc_var
+        self.calc = tk.Button(self.lowerframe, text='CALCOLA', command=self.get_discount, font = self.dscfont)
+##        Esegue il packaging di widgets e frames
+        self.cbox.pack(fill='y', expand=1)
+        self.lblabel.pack(fill='y', expand=0, padx=10, pady=20)
+        self.spinlabel.pack(fill='y', expand=0, padx=10, pady=20)
+        self.lbox.pack(fill='y', expand=0, padx=10, pady=20)
+        self.spin.pack(fill='y', expand=0, padx=10, pady=20)
+        self.calc.pack(fill='none', expand=0, padx=10, pady=20)
+        self.wd.mainloop()
+
+    def callback(self, event):
+        Composer.disc_type = self.lbox.current()
+
+    def get_discount(self):
+        self.d_type = Composer.disc_type
+        self.d_var = Composer.disc_var
+        if self.d_type == 2:
+            Composer.disc_amount = Composer.total
+        else:
+            self.item = Composer.discounts[self.d_type]
+            Composer.disc_amount = self.d_var.get()*self.item[1]
+        Composer.total = Composer.total - Composer.disc_amount
+        if Composer.total < 0:
+            Composer.ticket = - Composer.total
+            Composer.total = 0
+        Composer.takeaway = self.cb_var.get()
+        self.wd.destroy()
+        self.w.attributes(disabled=0)##abilita la finestra di composizione
+##        Lancia la registrazione dei dati dell'ordine
+        self.reg_append()
+        
+
+    def show_order(self):
+##        Mostra l'ordine compilato senza procedere
+        self.w2=tk.Tk()
+        self.w2.title('Mostra ordine temporaneo')
+        self.w2.iconbitmap(Composer.icon)
+        self.txt = converti('Scontrino numero ' , str(Composer.progress + 1))
+        self.item_lab=tk.Label(self.w2, text = self.txt)
+        self.item_lab.pack()
+        self.tot = 0
+        for self.i in range(len(Composer.connvar)):
+            self.line = Composer.pricelist[self.i]+[0, 0.00]
+            self.line[3] = Composer.connvar[self.i].get()
+            if self.line[3] != 0:
+                self.line[4]=self.line[3]*self.line[2]
+                self.txt = converti(self.line[1], (str(self.line[4])+' Euro'))
+                self.tot = self.tot + self.line[4]
+                self.item_lab=tk.Label(self.w2, text = self.txt)
+                self.item_lab.pack()
+        self.txt = converti('Totale consigliato ', (str(self.tot)+' Euro'))
+        self.item_lab=tk.Label(self.w2, text = self.txt)
+        self.item_lab.pack()
+        self.btn = tk.Button(self.w2, text = 'ESCI', command = self.w2reset)
+        self.btn.pack()
+        self.w2.mainloop()
+
+    def w2reset(self):
+        self.w2.destroy()
+
+    def reg_append(self):
+##        Compone la riga da registrare nel file di registro
+        self.line = []
+        for self.item in Composer.order:
+            self.line.append(self.item[3])
+        self.line.append(Composer.total)
+        self.line.append(Composer.disc_type)
+        self.line.append(Composer.disc_var.get())
+        self.line.append(Composer.takeaway)
+        self.line.append(Composer.progress)
+        self.linestr=str(self.line[0])
+        for self.i in range(1,len(self.line)):
+            self.linestr=self.linestr+'\t'+str(self.line[self.i])
+        self.linestr=self.linestr+'\n'
+        self.recfile = open(Composer.registry, 'a')
+        self.recfile.write(self.linestr)
+        self.recfile.close()
+##        Elimina le righe vuote dall'ordine
+        Composer.order = reduct_ord(Composer.order)
+##      Aggiorna la dispensa
+        self.update_galley()
+##      Aggiorna le luci
+        self.alert_update()        
+##        Stampa gli scontrini
+        self.bill_prn()        
+##        Azzera il display
+        self.reset_display()
+        
+
+    def bill_prn(self):
+##        Conversione in stringhe per stampa
+        self.com_str = []
+        self.com_kit = []
+        self.com_bar = []
+        self.n_scont=converti('Numero scontrino:', str(Composer.progress))
+        self.empty_row = converti('', '')
+        for self.item in Composer.order:
+            self.c=converti(self.item[1], 'pz. '+str(self.item[3]))
+            self.com_str.append(self.c)
+            if self.item[0] == 'b':
+                self.com_bar.append(self.c)
+            else:
+                self.com_kit.append(self.c)      
+##        Stampa scontrino cliente
+        self.com_str.insert(0, self.n_scont)
+        self.com_str.insert(1, self.empty_row)
+        self.com_str.append(self.empty_row)
+        self.a = 'Totale consigliato:'
+        self.b = str(Composer.total)+' Euro'
+        self.c = converti(self.a, self.b)
+        self.com_str.append(self.c)
+        if Composer.ok == True:
+            st_intest(Composer.cas_prn, 0)
+            st_corpo(Composer.cas_prn, self.com_str)
+            st_fondo(Composer.cas_prn, bcs(Composer.progress), 0)
+        else:
+            print('Scontrino cliente ok')
+##        Stampa scontrino cucina
+        if len(self.com_kit) != 0:
+            self.com_kit.append(self.empty_row)
+            if Composer.takeaway == True:
+                self.com_kit.append('ORDINE DA ASPORTO')
+                self.com_kit.append(self.empty_row)
+            if Composer.ok == True:
+                st_intest(Composer.kit_prn, 1)
+                st_corpo(Composer.kit_prn, self.com_kit)
+                st_fondo(Composer.kit_prn, bcs(Composer.progress), 1)
+            else:
+                print('Scontrino cucina ok')   
+##        Stampa scontrino bar
+        if len(self.com_bar) != 0:
+            self.com_bar.insert(0, self.n_scont)
+            self.com_bar.insert(1, self.empty_row)
+            self.com_bar.append(self.empty_row)
+            if Composer.ok == True:
+                st_intest(Composer.cas_prn, 2)
+                st_corpo(Composer.cas_prn, self.com_bar)
+                st_fondo(Composer.cas_prn, bcs(Composer.progress), 2)
+            else:
+                print('Scontrino bar ok')
+##        Stampa l'eventuale resto da buoni sconto
+        if Composer.ticket != 0.00:
+            self.dsc_str=[]
+            self.dsc_str.append('VALE')
+            self.dsc_str.append(str(Composer.ticket))
+            self.dsc_str.append('EURO')
+            if Composer.ok == True:
+                st_intest(Composer.cas_prn, 3)
+                st_sconto(Composer.cas_prn, self.dsc_str)
+                st_fondo(Composer.cas_prn, '', 3)
+            else:
+                print('Scontrino sconto ok')
+        Composer.order = []
+
+    def galley_status(self):
+        self.gal_com = []
+        self.gstr = 'STAMPA CONTROLLO DISPENSA'
+        self.gal_com.append(self.gstr)
+        self.gstr = converti('', '')
+        self.gal_com.append(self.gstr)
+        for self.item in Composer.galley:
+            self.gstr = converti(self.item, str(Composer.galley[self.item]))
+            self.gal_com.append(self.gstr)
+        self.gstr = converti('','')
+        self.gal_com.append(self.gstr)
+        self.gal_com.append(self.gstr)
+        self.dscfont=('Times', 18)
+        self.wgs = tk.Tk()
+        self.wgs.iconbitmap(Composer.icon)
+        self.wgs.title('Situazione dispensa')
+        self.wgs.config(background='navajowhite1')
+        self.bframe = tk.Frame(self.wgs, bg='navajowhite2')
+        self.bframe.pack(side='bottom', fill = 'both', expand = 1, padx=10, pady=10)
+        self.w.attributes(disabled=1)## disabilita la finestra di composizione
+        self.wgs.attributes(toolwindow=1)## permette solo la pressione sul pulsante in basso
+        for self.item in self.gal_com:
+            self.lab = tk.Label(self.wgs, text=self.item, font = self.dscfont, bg = self.wgs.cget('background')).pack()
+        self.puls1 = tk.Button(self.bframe, text = 'STAMPA', command = self.galley_prn)
+        self.puls1.pack(side = 'left', fill = 'both', expand = 1, pady=10, padx=10)
+        self.puls2 = tk.Button(self.bframe, text = 'AGGIUNGI', command = self.galley_add)
+        self.puls2.pack(side = 'left', fill = 'both', expand = 1, pady=10, padx=10)
+        self.puls3 = tk.Button(self.bframe, text = 'ESCI', command = self.galley_ext)
+        self.puls3.pack(side = 'left', fill = 'both', expand = 1, pady=10, padx=10)
+        self.wgs.mainloop()
+
+    def galley_prn(self):
+        if Composer.ok == True:
+            st_intest(Composer.cas_prn, 0)
+            st_corpo(Composer.cas_prn, self.gal_com)
+            Composer.cas_prn.ln(2)
+            Composer.cas_prn.cut()
+        else:
+            print('Stampa dispensa ok')
+        self.galley_ext()
+
+    def galley_add(self):
+        self.galley_ext()
+        Composer.gal_add = []
+        self.wga = tk.Tk()
+        self.wga.iconbitmap(Composer.icon)
+        self.wga.title('Rifornimento dispensa')
+        self.wga.config(background='peachpuff2')
+        self.bframe = tk.Frame(self.wga, bg='peachpuff3')
+        self.lframe = tk.Frame(self.wga, bg=self.wga.cget('background'))
+        self.rframe = tk.Frame(self.wga, bg=self.wga.cget('background'))
+        self.bframe.pack(side='bottom', fill = 'both', expand = 1, padx=10, pady=10)
+        self.lframe.pack(side='left', fill = 'both', expand = 1, padx=10, pady=10)
+        self.rframe.pack(side='right', fill = 'both', expand = 1, padx=10, pady=10)
+        for self.item in Composer.galley:
+            self.lab = tk.Label(self.lframe, text=self.item, font = self.dscfont, bg = self.lframe.cget('bg'))
+            self.lab.pack()
+            self.ent = tk.Entry(self.rframe, font = self.dscfont)
+            self.ent.pack()
+            self.line = [self.lab, self.ent]
+            Composer.gal_add.append(self.line)
+        self.puls1 = tk.Button(self.bframe, text = 'AGGIUNGI', command = self.increase_gal)
+        self.puls1.pack(side = 'left', fill = 'both', expand = 1, pady=10, padx=10)
+        self.puls3 = tk.Button(self.bframe, text = 'ESCI', command = self.wga.destroy)
+        self.puls3.pack(side = 'left', fill = 'both', expand = 1, pady=10, padx=10)
+        self.wga.mainloop()
+
+    def increase_gal(self):
+        for self.item in Composer.gal_add:
+            if self.item[1].get().isdecimal() == True:
+                Composer.galley[self.item[0].cget('text')] += int(self.item[1].get())
+        self.wga.destroy()
+        self.alert_update()
+        self.galley_status()    
+
+    def galley_ext(self):
+        self.wgs.destroy()
+        self.w.attributes(disabled=0)##abilita la finestra di composizione
+
+
+    def update_galley(self):
+##        Calcola l'impegno di ingredienti e aggiorna la dispensa
+        for self.line in Composer.order:
+            if self.line[5] != []:
+                self.ingredlst = self.line[5]
+                for self.i in range(len(self.ingredlst)):
+                    self.subline = self.ingredlst[self.i]
+                    self.ing = self.subline[1]*self.line[3]
+                    Composer.galley[self.subline[0]] -= self.ing
+        self.alert_update()
+        
+    def alert_update(self):
+##        Ricalcola lo stato delle luci in base alla dispensa
+        for self.i in range(len(Composer.pricelist)):
+            self.line = Composer.pricelist[self.i]
+            self.current_light = Composer.alert[self.i]
+            if self.line[5] != []:
+                self.s_line = self.line[5]
+                for self.n in range(len(self.s_line)):
+                    self.subline = self.s_line[self.n]
+                    self.stock = Composer.galley[self.subline[0]]
+                    if self.stock <= 5:
+                        Composer.alert[self.i] = 2
+                        self.current_light = 2
+                    elif self.stock > 5 and self.stock <= 15:
+                        Composer.alert[self.i] = max(1, self.current_light)
+                        self.current_light = Composer.alert[self.i]
+                    else:
+                        Composer.alert[self.i] = 0
+            else:
+                Composer.alert[self.i] = 0
+            self.line[7].config(image=Composer.alert_img[Composer.alert[self.i]])
+            if Composer.alert[self.i] == 2:
+                self.line[8].config(state = 'disabled')
+            else:
+                self.line[8].config(state = 'normal')
+            Composer.pricelist[self.i] = self.line
+
+    def day_close(self):
+        self.day_tot = []
+        self.day_dsc = []
+        self.day_tkw = 0
+        self.sold = []
+        for self.i in range(len(Composer.discounts)):
+            self.day_dsc.append(0)
+        self.file = open(Composer.registry)
+        while True:
+            self.line = self.file.readline()
+            if self.line == [] or self.line == '':
+                self.file.close()
+                break
+            else:
+                self.line = self.line.removesuffix('\n')
+                self.line = self.line.split('\t')
+                self.trash = self.line.pop(-1)
+                self.tkw = self.line.pop(-1)
+                if self.tkw == 'True' or self.tkw == True:
+                    self.day_tkw += 1
+                self.qt_dsc = self.line.pop(-1)
+                self.qt_dsc = int(self.qt_dsc)
+                self.tp_dsc = self.line.pop(-1)
+                self.tp_dsc = int(self.tp_dsc)
+                self.day_dsc[self.tp_dsc] = self.day_dsc[self.tp_dsc] + self.qt_dsc
+                self.line[-1] = float(self.line[-1])
+                for self.i in range(len(self.line)-1):
+                    self.line[self.i] = int(self.line[self.i])
+                if self.day_tot == []:
+                    self.day_tot = self.line
+                else:
+                    for self.i in range(len(self.line)):
+                        self.day_tot[self.i] += self.line[self.i]
+        self.sold.append('')
+        self.line = 'RESOCONTO VENDUTO'
+        self.sold.append(self.line)
+        for self.i in range(len(Composer.pricelist)):
+            self.current = Composer.pricelist[self.i]
+            self.line = converti(self.current[1], str(self.day_tot[self.i]))
+            self.sold.append(self.line)
+        self.line = converti('Totale incasso: ', str(self.day_tot[-1]))
+        self.sold.append(self.line)
+        self.sold.append('')
+        self.line = converti('Totale asporti:', str(self.day_tkw))
+        self.sold.append('')
+        self.sold.append('SCONTISTICA')
+        for self.i in range(len(self.day_dsc)):
+            self.dscln = Composer.discounts[self.i]
+            self.line = converti(self.dscln[0], str(self.day_dsc[self.i]))
+            self.sold.append(self.line)
+        if Composer.ok == True:
+            st_intest(Composer.cas_prn, 0)
+            st_corpo(Composer.cas_prn, self.sold)
+            Composer.cas_prn.ln(2)
+            Composer.cas_prn.cut()
+        else:
+            print('Chiusura giornata ok')
+        self.w.destroy()
+
+if __name__ == "__main__":
+    
+    app=Composer()
+    
+
