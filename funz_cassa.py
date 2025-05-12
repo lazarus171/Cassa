@@ -133,5 +133,22 @@ def st_sconto(vretti, str_list):
     for item in str_list:
         vretti.textln(item)      
 
+def bkd_tot(datafile, names):
+    df = open(datafile, 'r')
+    result = []
+    for i in range(len(names)):
+        result.append(0)
+    while True:
+        line = df.readline()
+        if line == '' or line == '\n':
+            df.close()
+            break
+        else:
+            line = line.removesuffix('\n')
+            line = line.split('\t')
+            for i in range(len(names)):
+                result[i] = result[i] + int(line[i])
+    return result
+
 
 

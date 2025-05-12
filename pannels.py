@@ -11,6 +11,7 @@ class Composer:
     alert = []
     progress = 0
     registry = ''
+    bkd_file = ''
     icon = ''
     kit_prn=''
     cas_prn=''
@@ -18,6 +19,10 @@ class Composer:
     galley={}
     cons={}
     ok = False # se False salta le stampe
+    delivery = '' # tipo di distribuzione
+    destination = ['name', 'table'] #Lista contenente nome e numero del tavolo
+    bkable_names=['alpha', 'bravo', 'charlie']
+    bkable_max=[20, 30, 40]
     
 ##    Calcolate internamente alla classe
     connvar = []
@@ -30,12 +35,15 @@ class Composer:
     alert_img = []
     takeaway = False
     gal_add = []
+    booked = []
 
     def __init__(self):
 ##        Legge i file di configurazione e di registrazione
         self.cnfdir = fdg.askdirectory(title='Cartella contenente i files di configurazione')
         self.cnf_file = self.cnfdir+'/config.txt'
         Composer.registry = self.cnfdir+'/registry.txt'
+        Composer.bkd_file = self.cnfdir+'/booked.txt'
+        Composer.booked = bkd_tot(Composer.bkd_file, Composer.bkable_names)
         self.cfile=open(self.cnf_file)
 ##        Carica il file di configurazione e lo legge
         while True:
@@ -52,12 +60,15 @@ class Composer:
 ##        Inizializza l'icona x l'app
                 elif self.line[0] == 'icn':
                     Composer.icon = self.cnfdir+'/'+self.line[1]
+##        Inizializza il tipo di distribuzione
+                elif self.line[0] == 'dlv':
+                    Composer.delivery == self.line[1]
 ##        Inizializza le stampanti
                 elif self.line[0] == 'prn':
                     if self.line[1] == 'kit':
                         Composer.kit_prn = Network(self.line[2], int(self.line[3]), int(self.line[4]))
                     elif self.line[1] == 'cas':
-                        Composer.cas_prn = Network(self.line[2], int(self.line[3]), int(self.line[4]))
+                        Composer.cas_prn = Network(self.line[2], int(self.line[3]), int(self.line[4]))                    
 ##        Inizializza la scontistica
                 elif self.line[0] == 'scn':
                     self.trash = self.line.pop(0)
@@ -175,7 +186,8 @@ class Composer:
                                command=self.galley_status)
         self.p_center=tk.Button(self.c_subfr, text='RESET', font=self.ffont, padx=10, pady=5,
                                 command=self.reset_display)
-        self.p_center1=tk.Button(self.c_subfr, text='CENTER 1', font=self.ffont, padx=10, pady=5)
+        self.p_center1=tk.Button(self.c_subfr, text='PRENOTAZIONI', font=self.ffont, padx=10, pady=5,
+                                 command=self.booking)
         self.p_right=tk.Button(self.r_subfr, text='AVANTI', font=self.ffont, padx=10, pady=5,
                                command=self.update)
         self.p_right1=tk.Button(self.r_subfr, text='CHIUSURA', font=self.ffont, padx=10, pady=5,
@@ -297,9 +309,52 @@ class Composer:
         Composer.takeaway = self.cb_var.get()
         self.wd.destroy()
         self.w.attributes(disabled=0)##abilita la finestra di composizione
+        if Composer.delivery != 'barcode':
+            self.set_delivery()
+        else:
+            self.reg_append()##Lancia la registrazione dei dati dell'ordine       
+        
+    def set_delivery(self):
+        ##        Imposta il nome cliente e il numero del tavolo
+        self.w3=tk.Tk()
+        self.w3.iconbitmap(Composer.icon)
+        self.w3.title('Impostazione opzioni')
+        self.w.attributes(disabled=1)## disabilita la finestra di composizione
+        self.w3.attributes(toolwindow=1)## permette solo la pressione sul pulsante in basso
+        self.dscfont=('Times', 18)
+        self.name_var = tk.StringVar(self.w3)
+        self.num_var = tk.StringVar(self.w3)
+##        Crea i frame
+        self.upperframe=tk.Frame(self.w3, bg='aquamarine1')
+        self.midframe=tk.Frame(self.w3, bg='aquamarine2')
+        self.lowerframe=tk.Frame(self.w3, bg='aquamarine3')
+##        Esegue il packaging dei frame
+        self.upperframe.pack(side='top', fill='both', expand=1)
+        self.midframe.pack(fill='both', expand='1')
+        self.lowerframe.pack(side='bottom', fill='both', expand=1)
+##        Crea i widget e le variabili necessarie
+        self.namelabel = tk.Label(self.upperframe, text='Nome cliente', font = self.dscfont, bg=self.upperframe.cget('bg'))
+        self.name_entry=tk.Entry(self.upperframe, font = self.dscfont, textvariable = self.name_var)
+        self.numlabel = tk.Label(self.midframe, text='Numero tavolo', font = self.dscfont, bg=self.upperframe.cget('bg'))
+        self.table_entry = tk.Entry(self.midframe, font = self.dscfont, textvariable = self.num_var)
+        self.goon = tk.Button(self.lowerframe, text='AVANTI', command=self.get_delivery, font = self.dscfont)
+##        Esegue il packaging di widgets nei frames
+        self.namelabel.pack(side='left', fill='y', expand=0, padx=10, pady=20)
+        self.name_entry.pack(side='right', fill='y', expand=0, padx=10, pady=20)
+        self.numlabel.pack(side='left', fill='y', expand=0, padx=10, pady=20)
+        self.table_entry.pack(side='right', fill='y', expand=0, padx=10, pady=20)
+        self.goon.pack(fill='none', expand=0, padx=10, pady=20)
+        self.w3.mainloop()
+
+    def get_delivery(self):
+        Composer.destination[0] = self.name_var.get()
+        Composer.destination[1] = self.num_var.get()
+        self.w3.destroy()
+        self.w.attributes(disabled=0)##abilita la finestra di composizione
 ##        Lancia la registrazione dei dati dell'ordine
         self.reg_append()
-        
+
+    
 
     def show_order(self):
 ##        Mostra l'ordine compilato senza procedere
@@ -380,24 +435,41 @@ class Composer:
         self.b = str(Composer.total)+' Euro'
         self.c = converti(self.a, self.b)
         self.com_str.append(self.c)
+        if Composer.delivery != 'barcode':
+            self.c = converti('Nome: ', Composer.destination[0])
+            self.com_str.append(self.c)
+            self.c = converti('Tavolo: ', Composer.destination[1])
+            self.com_str.append(self.c)
         if Composer.ok == True:
             st_intest(Composer.cas_prn, 0)
             st_corpo(Composer.cas_prn, self.com_str)
-            st_fondo(Composer.cas_prn, bcs(Composer.progress), 0)
+            if Composer.delivery == 'barcode':
+                st_fondo(Composer.cas_prn, bcs(Composer.progress), 0)
         else:
             print('Scontrino cliente ok')
+            print('Nome: ', Composer.destination[0])
+            print('Tavolo: ', Composer.destination[1])
 ##        Stampa scontrino cucina
         if len(self.com_kit) != 0:
             self.com_kit.append(self.empty_row)
             if Composer.takeaway == True:
                 self.com_kit.append('ORDINE DA ASPORTO')
                 self.com_kit.append(self.empty_row)
+            if Composer.delivery != 'barcode':
+                self.c = converti('Nome: ', Composer.destination[0])
+                self.com_kit.append(self.c)
+                self.c = converti('Tavolo: ', Composer.destination[1])
+                self.com_kit.append(self.c)
+                self.com_kit.append(self.empty_row)
             if Composer.ok == True:
                 st_intest(Composer.kit_prn, 1)
                 st_corpo(Composer.kit_prn, self.com_kit)
-                st_fondo(Composer.kit_prn, bcs(Composer.progress), 1)
+                if Composer.delivery == 'barcode':
+                    st_fondo(Composer.kit_prn, bcs(Composer.progress), 1)
             else:
-                print('Scontrino cucina ok')   
+                print('Scontrino cucina ok')
+                print('Nome: ', Composer.destination[0])
+                print('Tavolo: ', Composer.destination[1])   
 ##        Stampa scontrino bar
         if len(self.com_bar) != 0:
             self.com_bar.insert(0, self.n_scont)
@@ -600,8 +672,61 @@ class Composer:
             print('Chiusura giornata ok')
         self.w.destroy()
 
+    def booking(self):
+        self.dscfont=('Times', 18)
+        self.lbkd = []
+        self.wbk = tk.Tk()
+        self.wbk.iconbitmap(Composer.icon)
+        self.wbk.title('Finestra prenotazioni')
+        self.wbk.config(background='burlywood1')
+        self.bframe = tk.Frame(self.wbk, bg='burlywood3')
+        self.lframe = tk.Frame(self.wbk, bg=self.wbk.cget('background'))
+        self.rframe = tk.Frame(self.wbk, bg=self.wbk.cget('background'))
+        self.bframe.pack(side='bottom', fill = 'both', expand = 1, padx=10, pady=10)
+        self.lframe.pack(side='left', fill = 'both', expand = 1, padx=10, pady=10)
+        self.rframe.pack(side='right', fill = 'both', expand = 1, padx=10, pady=10)
+        for self.i in range(len(Composer.bkable_names)):
+            self.bkable = Composer.bkable_max[self.i]-Composer.booked[self.i]
+            self.item = Composer.bkable_names[self.i] + ' disp. ' + str(self.bkable)
+            self.var_bk = tk.IntVar(self.wbk, value = 0)
+            self.lab = tk.Label(self.lframe, text=self.item, font = self.dscfont, bg = self.lframe.cget('bg'))
+            self.lab.pack()
+            self.nspin = ttk.Spinbox(self.rframe, from_=0, to=self.bkable, font=self.dscfont, width=6,)
+            if self.bkable == 0:
+                self.nspin.config(state = 'disabled')
+            else:
+                self.nspin.config(state = 'normal')
+            self.nspin['textvariable'] = self.var_bk
+            self.nspin.pack()
+            self.lbkd.append(self.var_bk)
+        self.name_ent = tk.Entry(self.rframe, font = self.dscfont)
+        self.name_ent_var = tk.StringVar(self.wbk)
+        self.name_ent['textvariable'] = self.name_ent_var
+        self.name_lab = tk.Label(self.lframe, text='Nome', font = self.dscfont, bg = self.lframe.cget('bg'))
+        self.name_lab.pack()
+        self.name_ent.pack()
+       #Composer.bk_line.append(self.lbkd)
+        self.puls1 = tk.Button(self.bframe, text = 'AGGIUNGI', command = self.save_bk)
+        self.puls1.pack(side = 'left', fill = 'both', expand = 1, pady=10, padx=10)
+        self.puls3 = tk.Button(self.bframe, text = 'ESCI', command = self.wbk.destroy)
+        self.puls3.pack(side = 'left', fill = 'both', expand = 1, pady=10, padx=10)
+        self.wbk.mainloop()
+
+    def save_bk(self):
+        self.bk_line = ''
+        for self.i in range(len(self.lbkd)):
+            self.num = self.lbkd[self.i].get()
+            self.num = str(self.num)+'\t'
+            self.bk_line = self.bk_line + self.num
+        self.bk_line = self.bk_line + self.name_ent_var.get()+'\n'
+        self.bkf = open(Composer.bkd_file, 'a')
+        self.bkf.write(self.bk_line)
+        self.bkf.close()
+        Composer.booked = bkd_tot(Composer.bkd_file, Composer.bkable_names)
+        self.wbk.destroy()
+
 if __name__ == "__main__":
-    
+
     app=Composer()
     
 
