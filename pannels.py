@@ -7,22 +7,24 @@ from PIL import Image, ImageTk
 
 class Composer:
 ##    Imposta le variabili di classe
+    cnfdir = ''
+    cnf_file = ''
     pricelist = []
     alert = []
     progress = 0
     registry = ''
     bkd_file = ''
     icon = ''
-    kit_prn=''
-    cas_prn=''
-    discounts=[]
-    galley={}
-    cons={}
-    ok = False # se False salta le stampe
+    kit_prn = ''
+    cas_prn = ''
+    discounts = []
+    galley = {}
+    cons = {}
+    ok = True # se False salta le stampe
     delivery = '' # tipo di distribuzione
     destination = ['name', 'table'] #Lista contenente nome e numero del tavolo
-    bkable_names=['alpha', 'bravo', 'charlie']
-    bkable_max=[20, 30, 40]
+    bkable_names = []
+    bkable_max = []
     
 ##    Calcolate internamente alla classe
     connvar = []
@@ -39,12 +41,8 @@ class Composer:
 
     def __init__(self):
 ##        Legge i file di configurazione e di registrazione
-        self.cnfdir = fdg.askdirectory(title='Cartella contenente i files di configurazione')
-        self.cnf_file = self.cnfdir+'/config.txt'
-        Composer.registry = self.cnfdir+'/registry.txt'
-        Composer.bkd_file = self.cnfdir+'/booked.txt'
-        Composer.booked = bkd_tot(Composer.bkd_file, Composer.bkable_names)
-        self.cfile=open(self.cnf_file)
+        self.configura()
+        self.cfile=open(Composer.cnf_file)
 ##        Carica il file di configurazione e lo legge
         while True:
             self.line = self.cfile.readline()
@@ -60,15 +58,11 @@ class Composer:
 ##        Inizializza l'icona x l'app
                 elif self.line[0] == 'icn':
                     Composer.icon = self.cnfdir+'/'+self.line[1]
-##        Inizializza il tipo di distribuzione
-                elif self.line[0] == 'dlv':
-                    Composer.delivery == self.line[1]
-##        Inizializza le stampanti
-                elif self.line[0] == 'prn':
-                    if self.line[1] == 'kit':
-                        Composer.kit_prn = Network(self.line[2], int(self.line[3]), int(self.line[4]))
-                    elif self.line[1] == 'cas':
-                        Composer.cas_prn = Network(self.line[2], int(self.line[3]), int(self.line[4]))                    
+##        Inizializza i prenotabili
+                elif self.line[0] == 'bkg':
+                    self.line[2] = int(self.line[2])
+                    Composer.bkable_names.append(self.line[1])
+                    Composer.bkable_max.append(self.line[2])                    
 ##        Inizializza la scontistica
                 elif self.line[0] == 'scn':
                     self.trash = self.line.pop(0)
@@ -90,7 +84,8 @@ class Composer:
                         self.line = self.line + [0, 0.00, self.sublist, '', '', '']
                     Composer.pricelist.append(self.line)
                     Composer.alert.append(0)
-                    
+##        Calcola il totale delle prenotazioni
+        Composer.booked = bkd_tot(Composer.bkd_file, Composer.bkable_names)            
 ##        Imposta il progressivo di scontrino
         self.cfile=open(Composer.registry)
         self.current = self.cfile.readline()
@@ -107,8 +102,7 @@ class Composer:
                     Composer.progress = int(self.current[-1])
                     break
                 else:
-                    self.current = self.next_
-        
+                    self.current = self.next_        
 ##        Imposta le variabili di istanza
 ##        Lancia la finestra di composizione della comanda
         self.w = tk.Tk()
@@ -323,7 +317,6 @@ class Composer:
         self.w3.attributes(toolwindow=1)## permette solo la pressione sul pulsante in basso
         self.dscfont=('Times', 18)
         self.name_var = tk.StringVar(self.w3)
-        self.num_var = tk.StringVar(self.w3)
 ##        Crea i frame
         self.upperframe=tk.Frame(self.w3, bg='aquamarine1')
         self.midframe=tk.Frame(self.w3, bg='aquamarine2')
@@ -335,20 +328,26 @@ class Composer:
 ##        Crea i widget e le variabili necessarie
         self.namelabel = tk.Label(self.upperframe, text='Nome cliente', font = self.dscfont, bg=self.upperframe.cget('bg'))
         self.name_entry=tk.Entry(self.upperframe, font = self.dscfont, textvariable = self.name_var)
-        self.numlabel = tk.Label(self.midframe, text='Numero tavolo', font = self.dscfont, bg=self.upperframe.cget('bg'))
-        self.table_entry = tk.Entry(self.midframe, font = self.dscfont, textvariable = self.num_var)
+        if Composer.takeaway == False:
+            self.num_var = tk.StringVar(self.w3)
+            self.numlabel = tk.Label(self.midframe, text='Numero tavolo', font = self.dscfont, bg=self.upperframe.cget('bg'))
+            self.table_entry = tk.Entry(self.midframe, font = self.dscfont, textvariable = self.num_var)
         self.goon = tk.Button(self.lowerframe, text='AVANTI', command=self.get_delivery, font = self.dscfont)
 ##        Esegue il packaging di widgets nei frames
         self.namelabel.pack(side='left', fill='y', expand=0, padx=10, pady=20)
         self.name_entry.pack(side='right', fill='y', expand=0, padx=10, pady=20)
-        self.numlabel.pack(side='left', fill='y', expand=0, padx=10, pady=20)
-        self.table_entry.pack(side='right', fill='y', expand=0, padx=10, pady=20)
+        if Composer.takeaway == False:
+            self.numlabel.pack(side='left', fill='y', expand=0, padx=10, pady=20)
+            self.table_entry.pack(side='right', fill='y', expand=0, padx=10, pady=20)
         self.goon.pack(fill='none', expand=0, padx=10, pady=20)
         self.w3.mainloop()
 
     def get_delivery(self):
         Composer.destination[0] = self.name_var.get()
-        Composer.destination[1] = self.num_var.get()
+        if Composer.takeaway == False:
+            Composer.destination[1] = self.num_var.get()
+        else:
+            Composer.destination[1] = 'ASPORTO'
         self.w3.destroy()
         self.w.attributes(disabled=0)##abilita la finestra di composizione
 ##        Lancia la registrazione dei dati dell'ordine
@@ -445,6 +444,10 @@ class Composer:
             st_corpo(Composer.cas_prn, self.com_str)
             if Composer.delivery == 'barcode':
                 st_fondo(Composer.cas_prn, bcs(Composer.progress), 0)
+            else:
+                Composer.cas_prn.textln('ARRIVEDERCI E GRAZIE!')
+                Composer.cas_prn.cut()
+                Composer.cas_prn.close()
         else:
             print('Scontrino cliente ok')
             print('Nome: ', Composer.destination[0])
@@ -466,6 +469,10 @@ class Composer:
                 st_corpo(Composer.kit_prn, self.com_kit)
                 if Composer.delivery == 'barcode':
                     st_fondo(Composer.kit_prn, bcs(Composer.progress), 1)
+                else:
+                    Composer.kit_prn.textln('SCONTRINO CUCINA')
+                    Composer.kit_prn.cut()
+                    Composer.kit_prn.close()
             else:
                 print('Scontrino cucina ok')
                 print('Nome: ', Composer.destination[0])
@@ -706,12 +713,12 @@ class Composer:
         self.name_lab.pack()
         self.name_ent.pack()
        #Composer.bk_line.append(self.lbkd)
-        self.puls1 = tk.Button(self.bframe, text = 'AGGIUNGI', command = self.save_bk)
+        self.puls1 = tk.Button(self.bframe, text = 'SALVA', command = self.save_bk)
         self.puls1.pack(side = 'left', fill = 'both', expand = 1, pady=10, padx=10)
         self.puls3 = tk.Button(self.bframe, text = 'ESCI', command = self.wbk.destroy)
         self.puls3.pack(side = 'left', fill = 'both', expand = 1, pady=10, padx=10)
         self.wbk.mainloop()
-
+    
     def save_bk(self):
         self.bk_line = ''
         for self.i in range(len(self.lbkd)):
@@ -722,11 +729,89 @@ class Composer:
         self.bkf = open(Composer.bkd_file, 'a')
         self.bkf.write(self.bk_line)
         self.bkf.close()
+        if Composer.ok == True:
+            st_intest(Composer.cas_prn, 0)
+            bkg_print(self.bk_line, Composer.bkable_names, Composer.cas_prn)
+        else:
+            print('Prenotazione effettuata')
         Composer.booked = bkd_tot(Composer.bkd_file, Composer.bkable_names)
         self.wbk.destroy()
 
-if __name__ == "__main__":
+    def configura(self):
+        self.wcf=tk.Tk()
+        self.wcf.title('Configurazione')
+        self.c_dir=tk.StringVar(self.wcf)
+        self.c_dir.set('C:/Utenti')
+        self.df=tk.Frame(self.wcf)
+        self.df.pack(fill='both', expand=1)
+        self.dlab = tk.Label(self.df, text='Directory di configurazione')
+        self.dent=tk.Entry(self.df)
+        self.dent['textvariable']=self.c_dir
+        self.dbt=tk.Button(self.df, text = 'Sfoglia', command=self.sfoglia)
+        self.dlab.pack(side = 'left')
+        self.dent.pack(side = 'left', fill='both', expand=1)
+        self.dbt.pack(side='left')
+        self.cf=tk.Frame(self.wcf)
+        self.cf.pack(fill='both', expand=1)
+        self.clab=tk.Label(self.cf, text='Stampante cassa\t')
+        self.cent1=tk.Entry(self.cf)
+        self.cent1.insert(0, '192.168.1.102')
+        self.cent2=tk.Entry(self.cf)
+        self.cent2.insert(0, '9100')
+        self.cent3=tk.Entry(self.cf)
+        self.cent3.insert(0, '60')
+        self.clab.pack(side='left')
+        self.cent1.pack(side='left')
+        self.cent2.pack(side='left')
+        self.cent3.pack(side='left')
+        self.kf=tk.Frame(self.wcf)
+        self.kf.pack(fill='both', expand=1)
+        self.klab=tk.Label(self.kf, text='Stampante cucina\t')
+        self.kent1=tk.Entry(self.kf)
+        self.kent1.insert(0, '192.168.1.102')
+        self.kent2=tk.Entry(self.kf)
+        self.kent2.insert(0, '9100')
+        self.kent3=tk.Entry(self.kf)
+        self.kent3.insert(0, '60')
+        self.klab.pack(side='left')
+        self.kent1.pack(side='left')
+        self.kent2.pack(side='left')
+        self.kent3.pack(side='left')
+        self.af=tk.Frame(self.wcf)
+        self.af.pack(fill='both', expand=1)
+        self.abilita = tk.BooleanVar(self.wcf, value=False)
+        self.bcode=tk.BooleanVar(self.wcf, value=True)
+        self.achk=tk.Checkbutton(self.af, text='Abilita stampe', variable=self.abilita)
+        self.achk.pack(side='left', fill='both', expand=1)
+        self.bchk=tk.Checkbutton(self.af, text='Abilita barcode', variable=self.bcode)
+        self.bchk.pack(side = 'left', fill='both', expand=1)
+        self.bf=tk.Frame(self.wcf)
+        self.bf.pack(fill='both', expand=1)
+        self.svbt=tk.Button(self.bf, text='SALVA', command=self.salvataggio)
+        self.unbt=tk.Button(self.bf, text='ANNULLA', command=self.annulla)
+        self.svbt.pack(side='left', fill='both', expand=1)
+        self.unbt.pack(side='left', fill='both', expand=1)
+        self.wcf.mainloop()
 
-    app=Composer()
+    def salvataggio(self):
+        Composer.cas_prn=Network(self.cent1.get(), int(self.cent2.get()), int(self.cent3.get()))
+        Composer.kit_prn=Network(self.kent1.get(), int(self.kent2.get()), int(self.kent3.get()))
+        Composer.ok = self.abilita.get()
+        if self.bcode.get():
+            Composer.delivery='barcode'
+        else:
+            Composer.delivery='other'
+        Composer.cnfdir = self.c_dir.get()
+        Composer.cnf_file = Composer.cnfdir+'/config.txt'
+        Composer.registry = Composer.cnfdir+'/registry.txt'
+        Composer.bkd_file = Composer.cnfdir+'/booked.txt'
+        self.wcf.destroy()
+
+    def annulla(self):
+        self.wcf.destroy()
+
+    def sfoglia(self):
+        self.c_dir.set(fdg.askdirectory(title='Cartella contenente i files di configurazione'))
+
     
 

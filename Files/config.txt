@@ -1,3 +1,7 @@
+*** PRENOTABILI
+bkg	Spiedo	300
+bkg	Crespelle  	250
+bkg	Posti  	350
 ***	ICONE
 icn	Cappello.ico
 ***	DISPENSA
@@ -7,10 +11,6 @@ dsp	pasticcio	15
 dsp	crespelle	15
 dsp	schiz	15
 dsp	spiedo	0
-***	STAMPANTI
-prn	kit	192.168.1.102	9100	60
-prn	cas	192.168.1.102	9100	60
-prn ok  False
 ***	LISTINO
 lst	c	Panino freddo	3.00	pane	1
 lst	c	Panino pastin	4.00	pane	1	pastin	1
@@ -40,9 +40,3 @@ scn	Buono volontari	8.00
 scn	Buono rancio	0.00
 scn	Buono 50 cent	0.50
 scn	Buono ciclisti	6.00
-*** DISTRIBUZIONE
-dlv no_barcode
-***PRENOTABILI
-bkg Spiedo  300
-bkg Crespelle   200
-bkg Posti   250

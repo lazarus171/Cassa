@@ -150,5 +150,51 @@ def bkd_tot(datafile, names):
                 result[i] = result[i] + int(line[i])
     return result
 
-
-
+def bkg_print(dataline, names, printer):
+    dataline=dataline.removesuffix('\n')
+    dataline = dataline.split('\t')
+    toprint = []
+    toprint.append(converti('NOME', dataline[-1]))
+    for i in range(len(names)):
+        if int(dataline[i]) != 0:
+            riga = converti(names[i], dataline[i])
+            toprint.append(riga)
+    if printer.is_online() == False:
+        printer.open()
+    printer.set('center', #align
+                'a', #font
+                True, #bold
+                0, #underline
+                1, #width
+                1, #height
+                8, #densità
+                True, #invert
+                False, #smooth
+                False, #flip
+                False, #normal_textsize
+                True, #double_width
+                True, #double_height
+                False, #custom_size
+                )
+    printer.textln('PRENOTAZIONE')
+    printer.ln(1)
+    printer.set('center', #align
+                'a', #font
+                True, #bold
+                0, #underline
+                1, #width
+                1, #height
+                8, #densità
+                False, #invert
+                False, #smooth
+                False, #flip
+                True, #normal_textsize
+                False, #double_width
+                False, #double_height
+                False, #custom_size
+                )
+    for item in toprint:
+        printer.textln(item)
+    printer.ln(3)
+    printer.cut()
+    printer.close()
