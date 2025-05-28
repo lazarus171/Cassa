@@ -1,8 +1,9 @@
 # Cassa
  Programma per gestione incassi  
- [Schema di principio](#schema-di-principio-del-sistema-hardware)  
- [Diagramma di flusso](#diagramma-di-flusso)  
- [Descrizione dei files di testo](#descrizione-dei-files-di-testo)  
+1. [Schema di principio](#schema-di-principio-del-sistema-hardware)
+2. [Diagramma di flusso](#diagramma-di-flusso)
+3. [Descrizione dei files di testo](#descrizione-dei-files-di-testo)
+4. [Istruzioni per l'utilizzo](#istruzioni-per-lutilizzo)
  
 ## Descrizione generale della struttura
 - *C:/Cassa/*
