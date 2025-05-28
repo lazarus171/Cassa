@@ -1,5 +1,6 @@
 # Cassa
- Programma per gestione incassi
+ Programma per gestione incassi  
+ [Schema di principio](#schema-di-principio-del-sistema-hardware)
  
 ## Descrizione generale della struttura
 - *C:/Cassa/*
@@ -29,14 +30,21 @@
 | Istruzioni.pdf | vademecum di uso del programma |  
 
 ## Schema di principio del sistema hardware
-![Schema](/images/CassaComande.png)
+![Schema](/Files/red_b.png)
+
+## Diagramma di flusso
+![Diagramma di flusso](/Files/red_b.png)
 
 ## Descrizione dei files di testo
+
 ### Il file booked.txt
+![Registro prenotazioni](/Files/red_b.png)
 
 ### Il file registry.txt
+![Registro venduto](/Files/red_b.png)
 
 ### Il file config.txt
+![File di configurazione](/Files/red_b.png)
 
 ## Istruzioni per l'utilizzo
 Prima di lanciare il programma è necessario preparare adeguatamente i files necessari al regolare funzionamento del programma, seguendo queste semplici regole:
