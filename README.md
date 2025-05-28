@@ -28,6 +28,9 @@
 | RegCassa.pdf | diagramma di flusso con interazioni operatore-software |  
 | Istruzioni.pdf | vademecum di uso del programma |  
 
+## Schema di principio del sistema hardware
+![Schema](/images/CassaComande.png)
+
 ## Descrizione dei files di testo
 ### Il file booked.txt
 
