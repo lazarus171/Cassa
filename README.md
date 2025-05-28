@@ -16,7 +16,7 @@
 | Cappello.ico | file icona del Programma |  
 | [booked.txt](#il-file-bookedtxt) | file di registrazione delle prenotazioni |  
 | [config.txt](#il-file-configtxt) | file di configurazione del Programma |  
-| [registry.txt](il-file-registrytxt) | file di registro delle vendite |  
+| [registry.txt](#il-file-registrytxt) | file di registro delle vendite |  
 | green_b.png | file immagine per luce di segnalazione verde |  
 | red_b.png | file immagine per luce di segnalazione rossa |  
 | yellow_b.png | file immagine per luce di segnalazione gialla |  
@@ -30,21 +30,21 @@
 | Istruzioni.pdf | vademecum di uso del programma |  
 
 ## Schema di principio del sistema hardware
-![Schema](/Files/red_b.png)
+![Schema](/images/CassaComande.png)
 
 ## Diagramma di flusso
-![Diagramma di flusso](/Files/red_b.png)
+![Diagramma di flusso](/images/flusso.png)
 
 ## Descrizione dei files di testo
 
 ### Il file booked.txt
-![Registro prenotazioni](/Files/red_b.png)
+![Registro prenotazioni](/images/bookedfile.png)
 
 ### Il file registry.txt
-![Registro venduto](/Files/red_b.png)
+![Registro venduto](/images/registryfile.png)
 
 ### Il file config.txt
-![File di configurazione](/Files/red_b.png)
+![File di configurazione](/images/configfile.png)
 
 ## Istruzioni per l'utilizzo
 Prima di lanciare il programma è necessario preparare adeguatamente i files necessari al regolare funzionamento del programma, seguendo queste semplici regole:
