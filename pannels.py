@@ -239,7 +239,6 @@ class Composer:
             self.line = Composer.pricelist[self.i]
             self.line[3] = 0
             Composer.pricelist[self.i] = self.line
-
     
     def set_discount(self):
 ##        Imposta il tipo e l'entità dello sconto
@@ -273,7 +272,7 @@ class Composer:
         self.lbox.current(0)
         self.lbox.bind("<<ComboboxSelected>>", self.callback)
         self.spinlabel = tk.Label(self.leftframe, text='N° buoni', font = self.dscfont, bg=self.leftframe.cget('bg'))
-        self.spin = ttk.Spinbox(self.rightframe, from_=1, to=10, font=self.dscfont, width=5)
+        self.spin = ttk.Spinbox(self.rightframe, from_=1, to=10, font=self.dscfont, width=5)#, bg=self.rightframe.cget('bg'))
         self.spin['textvariable']=Composer.disc_var
         self.calc = tk.Button(self.lowerframe, text='CALCOLA', command=self.get_discount, font = self.dscfont)
 ##        Esegue il packaging di widgets e frames
@@ -330,7 +329,7 @@ class Composer:
         self.name_entry=tk.Entry(self.upperframe, font = self.dscfont, textvariable = self.name_var)
         if Composer.takeaway == False:
             self.num_var = tk.StringVar(self.w3)
-            self.numlabel = tk.Label(self.midframe, text='Numero tavolo', font = self.dscfont, bg=self.upperframe.cget('bg'))
+            self.numlabel = tk.Label(self.midframe, text='Numero tavolo', font = self.dscfont, bg=self.midframe.cget('bg'))
             self.table_entry = tk.Entry(self.midframe, font = self.dscfont, textvariable = self.num_var)
         self.goon = tk.Button(self.lowerframe, text='AVANTI', command=self.get_delivery, font = self.dscfont)
 ##        Esegue il packaging di widgets nei frames
@@ -352,8 +351,6 @@ class Composer:
         self.w.attributes(disabled=0)##abilita la finestra di composizione
 ##        Lancia la registrazione dei dati dell'ordine
         self.reg_append()
-
-    
 
     def show_order(self):
 ##        Mostra l'ordine compilato senza procedere
@@ -410,7 +407,6 @@ class Composer:
         self.bill_prn()        
 ##        Azzera il display
         self.reset_display()
-        
 
     def bill_prn(self):
 ##        Conversione in stringhe per stampa
@@ -450,8 +446,9 @@ class Composer:
                 Composer.cas_prn.close()
         else:
             print('Scontrino cliente ok')
-            print('Nome: ', Composer.destination[0])
-            print('Tavolo: ', Composer.destination[1])
+            if Composer.delivery != 'barcode':
+                print('Nome: ', Composer.destination[0])
+                print('Tavolo: ', Composer.destination[1])
 ##        Stampa scontrino cucina
         if len(self.com_kit) != 0:
             self.com_kit.append(self.empty_row)
@@ -475,8 +472,9 @@ class Composer:
                     Composer.kit_prn.close()
             else:
                 print('Scontrino cucina ok')
-                print('Nome: ', Composer.destination[0])
-                print('Tavolo: ', Composer.destination[1])   
+                if Composer.delivery != 'barcode':
+                    print('Nome: ', Composer.destination[0])
+                    print('Tavolo: ', Composer.destination[1])   
 ##        Stampa scontrino bar
         if len(self.com_bar) != 0:
             self.com_bar.insert(0, self.n_scont)
@@ -580,7 +578,6 @@ class Composer:
     def galley_ext(self):
         self.wgs.destroy()
         self.w.attributes(disabled=0)##abilita la finestra di composizione
-
 
     def update_galley(self):
 ##        Calcola l'impegno di ingredienti e aggiorna la dispensa
@@ -738,59 +735,65 @@ class Composer:
         self.wbk.destroy()
 
     def configura(self):
+        self.wfont=('Times', 18)
+        self.bg1='Coral1'
+        self.bg2='Coral2'
+        self.bg3='Coral3'
+        self.bg4='Coral4'
         self.wcf=tk.Tk()
         self.wcf.title('Configurazione')
+        self.wcf.config(background='Red')
         self.c_dir=tk.StringVar(self.wcf)
-        self.c_dir.set('C:/Utenti')
-        self.df=tk.Frame(self.wcf)
-        self.df.pack(fill='both', expand=1)
-        self.dlab = tk.Label(self.df, text='Directory di configurazione')
-        self.dent=tk.Entry(self.df)
+        self.c_dir.set('C:/Cassa/Files')
+        self.df=tk.Frame(self.wcf, bg=self.bg1)
+        self.df.pack(fill='both', expand=1, padx=10, pady=10)
+        self.dlab = tk.Label(self.df, font=self.wfont, bg=self.bg1, text='Directory di configurazione')
+        self.dent=tk.Entry(self.df, font=self.wfont)
         self.dent['textvariable']=self.c_dir
-        self.dbt=tk.Button(self.df, text = 'Sfoglia', command=self.sfoglia)
-        self.dlab.pack(side = 'left')
-        self.dent.pack(side = 'left', fill='both', expand=1)
-        self.dbt.pack(side='left')
-        self.cf=tk.Frame(self.wcf)
-        self.cf.pack(fill='both', expand=1)
-        self.clab=tk.Label(self.cf, text='Stampante cassa\t')
-        self.cent1=tk.Entry(self.cf)
-        self.cent1.insert(0, '192.168.1.102')
-        self.cent2=tk.Entry(self.cf)
+        self.dbt=tk.Button(self.df, text = 'Sfoglia', command=self.sfoglia, font=self.wfont)
+        self.dlab.pack(side = 'left', fill='both', expand=1, padx=10, pady=10)
+        self.dent.pack(side = 'left', fill='both', expand=1, padx=10, pady=10)
+        self.dbt.pack(side='left', fill='both', expand=1, padx=10, pady=10)
+        self.cf=tk.Frame(self.wcf, bg=self.bg2)
+        self.cf.pack(fill='both', expand=1, padx=10)#, pady=10)
+        self.clab=tk.Label(self.cf, text='Stampante cassa\t', font=self.wfont, bg=self.cf.cget('bg'))
+        self.cent1=tk.Entry(self.cf, font=self.wfont)
+        self.cent1.insert(0, '192.168.1.101')
+        self.cent2=tk.Entry(self.cf, font=self.wfont)
         self.cent2.insert(0, '9100')
-        self.cent3=tk.Entry(self.cf)
+        self.cent3=tk.Entry(self.cf, font=self.wfont)
         self.cent3.insert(0, '60')
-        self.clab.pack(side='left')
-        self.cent1.pack(side='left')
-        self.cent2.pack(side='left')
-        self.cent3.pack(side='left')
-        self.kf=tk.Frame(self.wcf)
-        self.kf.pack(fill='both', expand=1)
-        self.klab=tk.Label(self.kf, text='Stampante cucina\t')
-        self.kent1=tk.Entry(self.kf)
+        self.clab.pack(side='left', fill='both', expand=1, padx=10, pady=10)
+        self.cent1.pack(side='left', fill='both', expand=1, padx=10, pady=10)
+        self.cent2.pack(side='left', fill='both', expand=1, padx=10, pady=10)
+        self.cent3.pack(side='left', fill='both', expand=1, padx=10, pady=10)
+        self.kf=tk.Frame(self.wcf, bg=self.bg2)
+        self.kf.pack(fill='both', expand=1, padx=10)#, pady=10)
+        self.klab=tk.Label(self.kf, text='Stampante cucina\t', bg=self.kf.cget('bg'), font=self.wfont)
+        self.kent1=tk.Entry(self.kf, font=self.wfont)
         self.kent1.insert(0, '192.168.1.102')
-        self.kent2=tk.Entry(self.kf)
+        self.kent2=tk.Entry(self.kf, font=self.wfont)
         self.kent2.insert(0, '9100')
-        self.kent3=tk.Entry(self.kf)
+        self.kent3=tk.Entry(self.kf, font=self.wfont)
         self.kent3.insert(0, '60')
-        self.klab.pack(side='left')
-        self.kent1.pack(side='left')
-        self.kent2.pack(side='left')
-        self.kent3.pack(side='left')
-        self.af=tk.Frame(self.wcf)
-        self.af.pack(fill='both', expand=1)
-        self.abilita = tk.BooleanVar(self.wcf, value=False)
+        self.klab.pack(side='left', fill='both', expand=1, padx=10, pady=10)
+        self.kent1.pack(side='left', fill='both', expand=1, padx=10, pady=10)
+        self.kent2.pack(side='left', fill='both', expand=1, padx=10, pady=10)
+        self.kent3.pack(side='left', fill='both', expand=1, padx=10, pady=10)
+        self.af=tk.Frame(self.wcf, bg=self.bg3)
+        self.af.pack(fill='both', expand=1, padx=10, pady=10)
+        self.abilita = tk.BooleanVar(self.wcf, value=True)
         self.bcode=tk.BooleanVar(self.wcf, value=True)
-        self.achk=tk.Checkbutton(self.af, text='Abilita stampe', variable=self.abilita)
-        self.achk.pack(side='left', fill='both', expand=1)
-        self.bchk=tk.Checkbutton(self.af, text='Abilita barcode', variable=self.bcode)
-        self.bchk.pack(side = 'left', fill='both', expand=1)
-        self.bf=tk.Frame(self.wcf)
-        self.bf.pack(fill='both', expand=1)
-        self.svbt=tk.Button(self.bf, text='SALVA', command=self.salvataggio)
-        self.unbt=tk.Button(self.bf, text='ANNULLA', command=self.annulla)
-        self.svbt.pack(side='left', fill='both', expand=1)
-        self.unbt.pack(side='left', fill='both', expand=1)
+        self.achk=tk.Checkbutton(self.af, text='Abilita stampe', variable=self.abilita, bg=self.af.cget('bg'), font=self.wfont)
+        self.achk.pack(side='left', fill='both', expand=1, padx=10, pady=10)
+        self.bchk=tk.Checkbutton(self.af, text='Abilita barcode', variable=self.bcode, bg=self.af.cget('bg'), font=self.wfont)
+        self.bchk.pack(side = 'left', fill='both', expand=1, padx=10, pady=10)
+        self.bf=tk.Frame(self.wcf, bg=self.bg4)
+        self.bf.pack(fill='both', expand=1, padx=10, pady=10)
+        self.svbt=tk.Button(self.bf, text='SALVA', command=self.salvataggio, font=self.wfont)
+        self.unbt=tk.Button(self.bf, text='ANNULLA', command=self.annulla, font=self.wfont)
+        self.svbt.pack(side='left', fill='both', expand=1, padx=10, pady=10)
+        self.unbt.pack(side='left', fill='both', expand=1, padx=10, pady=10)
         self.wcf.mainloop()
 
     def salvataggio(self):
@@ -812,6 +815,3 @@ class Composer:
 
     def sfoglia(self):
         self.c_dir.set(fdg.askdirectory(title='Cartella contenente i files di configurazione'))
-
-    
-
