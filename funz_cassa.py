@@ -1,5 +1,3 @@
-from escpos.printer import Network
-
 def reduct_ord(ordine):
     'Restituisce la comanda senza righe vuote'
     result=[]
@@ -7,7 +5,6 @@ def reduct_ord(ordine):
         if item[3]!=0:
             result.append(item)
     return result
-
 
 def bcs(num):
     'Crea un codice a barre in formato EAN8 corretto'
@@ -30,9 +27,9 @@ def bcs(num):
     s = s+last
     return s
 
-def converti(testa, coda):
+def converti(testa, spazi, coda):
     'Converte i dati in stringhe stampabili su scontrino'
-    centro = ' '*(46-len(testa)-len(coda))
+    centro = ' '*(spazi-len(testa)-len(coda))
     res = testa+centro+coda
     return res
     
@@ -154,10 +151,10 @@ def bkg_print(dataline, names, printer):
     dataline=dataline.removesuffix('\n')
     dataline = dataline.split('\t')
     toprint = []
-    toprint.append(converti('NOME', dataline[-1]))
+    toprint.append(converti('NOME', 46, dataline[-1]))
     for i in range(len(names)):
         if int(dataline[i]) != 0:
-            riga = converti(names[i], dataline[i])
+            riga = converti(names[i], 46, dataline[i])
             toprint.append(riga)
     if printer.is_online() == False:
         printer.open()
@@ -198,3 +195,7 @@ def bkg_print(dataline, names, printer):
     printer.ln(3)
     printer.cut()
     printer.close()
+
+def stampa(item):
+    for i in range(len(item)):
+        print(item[i])
