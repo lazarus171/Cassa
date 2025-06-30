@@ -572,7 +572,6 @@ class Composer:
             Composer.cas_prn.cut()
         else:
             print('Chiusura giornata ok')
-        ##self.w.destroy()
 
     def booking(self):
         self.dscfont=('Courier', 18)
@@ -683,7 +682,7 @@ class Composer:
         self.af=tk.Frame(self.wcf, bg=self.bg3)
         self.af.pack(fill='both', expand=1, padx=10, pady=10)
         self.abilita = tk.BooleanVar(self.wcf, value=True)
-        self.bcode=tk.BooleanVar(self.wcf, value=True)
+        self.bcode = tk.BooleanVar(self.wcf, value=True)
         self.achk=tk.Checkbutton(self.af, text='Abilita stampe', variable=self.abilita, bg=self.af.cget('bg'), font=self.wfont)
         self.achk.pack(side='left', fill='both', expand=1, padx=10, pady=10)
         self.bchk=tk.Checkbutton(self.af, text='Abilita barcode', variable=self.bcode, bg=self.af.cget('bg'), font=self.wfont)
@@ -697,8 +696,9 @@ class Composer:
         self.wcf.mainloop()
 
     def salvataggio(self):
-        Composer.cas_prn=Network(self.cent1.get(), int(self.cent2.get()), int(self.cent3.get()))
-        Composer.kit_prn=Network(self.kent1.get(), int(self.kent2.get()), int(self.kent3.get()))
+        if self.abilita.get():
+            Composer.cas_prn=Network(self.cent1.get(), int(self.cent2.get()), int(self.cent3.get()))
+            Composer.kit_prn=Network(self.kent1.get(), int(self.kent2.get()), int(self.kent3.get()))
         Composer.ok = self.abilita.get()
         if self.bcode.get():
             Composer.delivery='barcode'
