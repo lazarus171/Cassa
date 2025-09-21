@@ -10,7 +10,7 @@
 
 | nome file | descrizione |
 | --- | --- |
-| cassa.exe | file eseguibile |
+| cassa.py | file principale |
 
 - *C:/Cassa/Files/*
 
