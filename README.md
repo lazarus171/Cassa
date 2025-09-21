@@ -10,7 +10,9 @@
 
 | nome file | descrizione |
 | --- | --- |
-| cassa.py | file principale |
+| cassa.py |  codice principale |
+| funz_cassa.py | codice di funzioni varie |
+| pannels.py | codice per creazione pannelli |
 
 - *C:/Cassa/Files/*
 
