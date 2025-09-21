@@ -13,6 +13,7 @@
 | cassa.py |  codice principale |
 | funz_cassa.py | codice di funzioni varie |
 | pannels.py | codice per creazione pannelli |
+| requirements.txt | elenco pacchetti necessari per il funzionamento |
 
 - *C:/Cassa/Files/*
 
