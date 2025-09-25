@@ -195,7 +195,8 @@ class Composer:
         Composer.takeaway = self.cb_var.get()
         self.wd.destroy()
 ##        self.w.attributes(disabled=0)##abilita la finestra di composizione
-        if Composer.delivery != 'barcode':
+##        if Composer.delivery != 'barcode':
+        if Composer.delivery != 'other':
             self.set_delivery()
         else:
             self.reg_append()##Lancia la registrazione dei dati dell'ordine       
@@ -325,7 +326,7 @@ class Composer:
         self.b = str(Composer.total)+' Euro'
         self.c = converti(self.a, 46, self.b)
         self.com_str.append(self.c)
-        if Composer.delivery != 'barcode':
+        if Composer.delivery == 'tablenum':
             self.c = converti('Nome: ', 46, Composer.destination[0])
             self.com_str.append(self.c)
             self.c = converti('Tavolo: ', 46, Composer.destination[1])
@@ -341,7 +342,7 @@ class Composer:
                 Composer.cas_prn.close()
         else:
             print('Scontrino cliente ok')
-            if Composer.delivery != 'barcode':
+            if Composer.delivery == 'tablenum':
                 print('Nome: ', Composer.destination[0])
                 print('Tavolo: ', Composer.destination[1])
 ##        Stampa scontrino cucina
@@ -350,24 +351,30 @@ class Composer:
             if Composer.takeaway == True:
                 self.com_kit.append('ORDINE DA ASPORTO')
                 self.com_kit.append(self.empty_row)
-            if Composer.delivery != 'barcode':
+            if Composer.delivery == 'tablenum':
                 self.c = converti('Nome: ', 46, Composer.destination[0])
                 self.com_kit.append(self.c)
                 self.c = converti('Tavolo: ', 46, Composer.destination[1])
                 self.com_kit.append(self.c)
                 self.com_kit.append(self.empty_row)
+                self.com_kit.append(self.empty_row)
+                self.com_kit.append(self.empty_row)
             if Composer.ok == True:
-                st_intest(Composer.kit_prn, 1)
-                st_corpo(Composer.kit_prn, self.com_kit)
-                if Composer.delivery == 'barcode':
+                if Composer.delivery == 'other':
+                    st_intest(Composer.kit_prn, 4)
+                    st_corpo(Composer.kit_prn, self.com_kit)
+                    st_fondo(Composer.kit_prn, Composer.delivery, 4)
+                elif Composer.delivery == 'barcode':
+                    st_intest(Composer.kit_prn, 1)
+                    st_corpo(Composer.kit_prn, self.com_kit)
                     st_fondo(Composer.kit_prn, bcs(Composer.progress), 1)
-                else:
-                    Composer.kit_prn.textln('SCONTRINO CUCINA')
+                elif Composer.delivery == 'tablenum':
+                    st_intest(Composer.kit_prn, 1)
+                    st_corpo(Composer.kit_prn, self.com_kit)
                     Composer.kit_prn.cut()
-                    Composer.kit_prn.close()
             else:
                 print('Scontrino cucina ok')
-                if Composer.delivery != 'barcode':
+                if Composer.delivery == 'tablenum':
                     print('Nome: ', Composer.destination[0])
                     print('Tavolo: ', Composer.destination[1])   
 ##        Stampa scontrino bar
@@ -670,7 +677,7 @@ class Composer:
         self.kf.pack(fill='both', expand=1, padx=10)#, pady=10)
         self.klab=tk.Label(self.kf, text='Stampante cucina\t', bg=self.kf.cget('bg'), font=self.wfont)
         self.kent1=tk.Entry(self.kf, font=self.wfont)
-        self.kent1.insert(0, '192.168.1.102')
+        self.kent1.insert(0, '192.168.1.101')
         self.kent2=tk.Entry(self.kf, font=self.wfont)
         self.kent2.insert(0, '9100')
         self.kent3=tk.Entry(self.kf, font=self.wfont)
@@ -681,12 +688,23 @@ class Composer:
         self.kent3.pack(side='left', fill='both', expand=1, padx=10, pady=10)
         self.af=tk.Frame(self.wcf, bg=self.bg3)
         self.af.pack(fill='both', expand=1, padx=10, pady=10)
+        self.abf=tk.Frame(self.wcf, bg=self.bg3)
+        self.abf.pack(fill='both', expand=1, padx=10, pady=10)
         self.abilita = tk.BooleanVar(self.wcf, value=True)
-        self.bcode = tk.BooleanVar(self.wcf, value=True)
+        self.book_enable = tk.BooleanVar(self.wcf, value=False)
+        self.bcode = tk.IntVar()
+        self.bcode.set(2)
+        self.bcodes=['barcode', 'tablenum', 'other']
         self.achk=tk.Checkbutton(self.af, text='Abilita stampe', variable=self.abilita, bg=self.af.cget('bg'), font=self.wfont)
         self.achk.pack(side='left', fill='both', expand=1, padx=10, pady=10)
-        self.bchk=tk.Checkbutton(self.af, text='Abilita barcode', variable=self.bcode, bg=self.af.cget('bg'), font=self.wfont)
-        self.bchk.pack(side = 'left', fill='both', expand=1, padx=10, pady=10)
+        self.cchk=tk.Checkbutton(self.af, text='Abilita prenotazioni', variable=self.book_enable, bg=self.af.cget('bg'), font=self.wfont)
+        self.bchk1 = tk.Radiobutton(self.abf, text='Chiamata', variable=self.bcode, value=0, bg=self.af.cget('bg'), font=self.wfont)
+        self.bchk2 = tk.Radiobutton(self.abf, text='Servito al tavolo', variable=self.bcode, value=1, bg=self.af.cget('bg'), font=self.wfont)
+        self.bchk3 = tk.Radiobutton(self.abf, text='Self Service', variable=self.bcode,  value=2, bg=self.af.cget('bg'), font=self.wfont)
+        self.cchk.pack(side = 'left', fill='both', expand=1, padx=10, pady=10)
+        self.bchk1.pack(side = 'left', fill='both', expand=1, padx=10, pady=10)
+        self.bchk2.pack(side = 'left', fill='both', expand=1, padx=10, pady=10)
+        self.bchk3.pack(side = 'left', fill='both', expand=1, padx=10, pady=10)
         self.bf=tk.Frame(self.wcf, bg=self.bg4)
         self.bf.pack(fill='both', expand=1, padx=10, pady=10)
         self.svbt=tk.Button(self.bf, text='SALVA', command=self.salvataggio, font=self.wfont)
@@ -700,10 +718,9 @@ class Composer:
             Composer.cas_prn=Network(self.cent1.get(), int(self.cent2.get()), int(self.cent3.get()))
             Composer.kit_prn=Network(self.kent1.get(), int(self.kent2.get()), int(self.kent3.get()))
         Composer.ok = self.abilita.get()
-        if self.bcode.get():
-            Composer.delivery='barcode'
-        else:
-            Composer.delivery='other'
+        Composer.delivery = self.bcodes[self.bcode.get()]
+        ##  Controllo
+        print('Il tipo di distribuzione scelto è ', Composer.delivery)
         Composer.cnfdir = self.c_dir.get()
         Composer.cnf_file = Composer.cnfdir+'/config.txt'
         Composer.registry = Composer.cnfdir+'/registry.txt'

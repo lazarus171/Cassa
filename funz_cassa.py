@@ -35,15 +35,17 @@ def converti(testa, spazi, coda):
     
 def st_intest(vretti, tipo):
     'Stampa la stringa come intestazione di scontrino'
-    #Sceglie la stringa in base al tipo (0=cliente, 1=cucina, 2=bar, 3=sconto)
-    if tipo == 0 or tipo == 3:
+    #Sceglie la stringa in base al tipo (0=cliente, 1=cucina, 2=bar, 3=sconto, 4=panini)
+    if tipo == 0:
         stringa="ASSOCIAZIONE NAZIONALE ALPINI\nGruppo \"S. Zollet\"\nSanta Giustina"
     elif tipo == 1:
         stringa = 'COMANDA CUCINA'
     elif tipo == 2:
         stringa = 'COMANDA BAR'
     elif tipo == 3:
-        stringa = 'BUONO SCONTO - RESTO'
+        stringa = 'ASSOCIAZIONE NAZIONALE ALPINI\nGruppo \"S. Zollet\"\nSanta Giustina\nBUONO SCONTO - RESTO'
+    elif tipo == 4:
+        stringa = 'COMANDA PANINI'
     #Controllo connessione attiva
     if vretti.is_online() == False:
         vretti.open()
@@ -87,7 +89,7 @@ def st_fondo(vretti, stringa, tipo):
                 False, #custom_size
                 )
     vretti.ln(2)
-    #Sceglie la stringa in base al tipo (0=cliente, 1=cucina, 2=bar, 3=sconto)
+    #Sceglie la stringa in base al tipo (0=cliente, 1=cucina, 2=bar, 3=sconto, 4=panini)
     if tipo == 0 or tipo == 3:
         vretti.textln('ARRIVEDERCI E GRAZIE!')
     elif tipo == 1:
@@ -95,6 +97,8 @@ def st_fondo(vretti, stringa, tipo):
         vretti.buzzer(3, 2)
     elif tipo == 2:
         vretti.textln('Copia per il bar')
+    elif tipo == 4:
+        vretti.textln('Copia per il chiosco panini')
     vretti.cut()
     vretti.close()
 

@@ -30,6 +30,15 @@ image = image.resize((28, 28))
 ph = ImageTk.PhotoImage(image)
 z.alert_img.append(ph)
 
+##        Imposta l'immagine del gruppo
+image=Image.open(z.cnfdir+'/Logo_Gruppo.png')
+image = image.resize((150, 150))
+ph_logo = ImageTk.PhotoImage(image)
+##        Imposta l'immagine dell'ANA
+image=Image.open(z.cnfdir+'/Logo_Ana.png')
+image = image.resize((200, 200))
+ph_logo_ana = ImageTk.PhotoImage(image)
+
 ##        Crea i frame per il packaging
 t_frame = tk.Frame(frame, bg='green')## superiore
 l_frame = tk.Frame(frame, bg='olivedrab1')## sinistro
@@ -46,8 +55,12 @@ l_subfr.pack(side='left', fill='both', expand=1)
 c_subfr.pack(side='left', fill='both', expand=1)
 r_subfr.pack(side='left', fill='both', expand=1)
 
-t_lab=tk.Label(t_frame, text='Gruppo Alpini "Sincero Zollet" - Santa Giustina', font=('Times', 24, 'bold'), fg='gold', bg='green')
-t_lab.pack()
+t_lab=tk.Label(t_frame, text='Gruppo Alpini "Sincero Zollet" - Santa Giustina', font=('Times', 36, 'bold'), fg='gold', bg='green')
+logo_lab=tk.Label(t_frame, image=ph_logo, bg='green')##, font=('Times', 24, 'bold'), fg='gold')
+logo_ana=tk.Label(t_frame, image=ph_logo_ana, bg='green')##, font=('Times', 24, 'bold'), fg='gold')
+logo_lab.pack(side='left', fill='x', expand=1)
+t_lab.pack(side='left', fill='x', expand=1)
+logo_ana.pack(side='left', fill='x', expand=1)
 
 ffont=('Times', 18)
 
@@ -81,6 +94,8 @@ p_left=tk.Button(l_subfr, text='MOSTRA ORDINE', font=ffont, padx=10, pady=5, com
 p_left1=tk.Button(l_subfr, text='DISPENSA', font=ffont, padx=10, pady=5, command=z.galley_status)
 p_center=tk.Button(c_subfr, text='RESET', font=ffont, padx=10, pady=5, command=z.reset_display)
 p_center1=tk.Button(c_subfr, text='PRENOTAZIONI', font=ffont, padx=10, pady=5, command=z.booking)
+if z.book_enable.get()==False:
+    p_center1.config(state='disabled')
 p_right=tk.Button(r_subfr, text='AVANTI', font=ffont, padx=10, pady=5, command=z.update)
 p_right1=tk.Button(r_subfr, text='CHIUSURA', font=ffont, padx=10, pady=5, command=z.day_close)
 p_left.pack(side='left', fill='none', expand=1)
