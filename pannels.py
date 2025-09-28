@@ -326,6 +326,7 @@ class Composer:
         self.b = str(Composer.total)+' Euro'
         self.c = converti(self.a, 46, self.b)
         self.com_str.append(self.c)
+        self.com_str.append(self.empty_row)
         if Composer.delivery == 'tablenum':
             self.c = converti('Nome: ', 46, Composer.destination[0])
             self.com_str.append(self.c)
@@ -335,11 +336,11 @@ class Composer:
             st_intest(Composer.cas_prn, 0)
             st_corpo(Composer.cas_prn, self.com_str)
             if Composer.delivery == 'barcode':
-                st_fondo(Composer.cas_prn, bcs(Composer.progress), 0)
-            else:
-                Composer.cas_prn.textln('ARRIVEDERCI E GRAZIE!')
-                Composer.cas_prn.cut()
-                Composer.cas_prn.close()
+                st_fondo(Composer.cas_prn, bcs(Composer.progress), 1)
+            elif Composer.delivery == 'tablenum':
+                pass
+            elif Composer.delivery == 'other':
+                st_fondo(Composer.cas_prn, '', 0)
         else:
             print('Scontrino cliente ok')
             if Composer.delivery == 'tablenum':
@@ -347,6 +348,8 @@ class Composer:
                 print('Tavolo: ', Composer.destination[1])
 ##        Stampa scontrino cucina
         if len(self.com_kit) != 0:
+            self.com_kit.insert(0, self.n_scont)
+            self.com_kit.insert(1, self.empty_row)
             self.com_kit.append(self.empty_row)
             if Composer.takeaway == True:
                 self.com_kit.append('ORDINE DA ASPORTO')
@@ -404,11 +407,7 @@ class Composer:
 
     def galley_status(self):
         self.gal_com = []
-        self.spcs = 30
-        self.gstr = 'STAMPA CONTROLLO DISPENSA'
-        self.gal_com.append(self.gstr)
-        self.gstr = converti('', self.spcs, '')
-        self.gal_com.append(self.gstr)
+        self.spcs = 46
         for self.item in Composer.galley:
             self.gstr = converti(self.item, self.spcs, str(Composer.galley[self.item]))
             self.gal_com.append(self.gstr)
@@ -436,7 +435,7 @@ class Composer:
 
     def galley_prn(self):
         if Composer.ok == True:
-            st_intest(Composer.cas_prn, 0)
+            st_intest(Composer.cas_prn, 5)
             st_corpo(Composer.cas_prn, self.gal_com)
             Composer.cas_prn.ln(2)
             Composer.cas_prn.cut()
@@ -556,16 +555,16 @@ class Composer:
                     for self.i in range(len(self.line)):
                         self.day_tot[self.i] += self.line[self.i]
         self.sold.append('')
-        self.line = 'RESOCONTO VENDUTO'
-        self.sold.append(self.line)
         for self.i in range(len(Composer.pricelist)):
             self.current = Composer.pricelist[self.i]
             self.line = converti(self.current[1], 46, str(self.day_tot[self.i]))
             self.sold.append(self.line)
+        self.sold.append('')
         self.line = converti('Totale incasso: ', 46, str(self.day_tot[-1]))
         self.sold.append(self.line)
         self.sold.append('')
         self.line = converti('Totale asporti:', 46, str(self.day_tkw))
+        self.sold.append(self.line)
         self.sold.append('')
         self.sold.append('SCONTISTICA')
         for self.i in range(len(self.day_dsc)):
@@ -573,7 +572,7 @@ class Composer:
             self.line = converti(self.dscln[0], 46, str(self.day_dsc[self.i]))
             self.sold.append(self.line)
         if Composer.ok == True:
-            st_intest(Composer.cas_prn, 0)
+            st_intest(Composer.cas_prn, 6)
             st_corpo(Composer.cas_prn, self.sold)
             Composer.cas_prn.ln(2)
             Composer.cas_prn.cut()
@@ -650,7 +649,7 @@ class Composer:
         self.wcf.title('Configurazione')
         self.wcf.config(background='Red')
         self.c_dir=tk.StringVar(self.wcf)
-        self.c_dir.set('C:/Cassa/Files')
+        self.c_dir.set('C:/CassaMostraMercato2025/Files')
         self.df=tk.Frame(self.wcf, bg=self.bg1)
         self.df.pack(fill='both', expand=1, padx=10, pady=10)
         self.dlab = tk.Label(self.df, font=self.wfont, bg=self.bg1, text='Directory di configurazione')
@@ -715,12 +714,18 @@ class Composer:
 
     def salvataggio(self):
         if self.abilita.get():
-            Composer.cas_prn=Network(self.cent1.get(), int(self.cent2.get()), int(self.cent3.get()))
-            Composer.kit_prn=Network(self.kent1.get(), int(self.kent2.get()), int(self.kent3.get()))
+            self.address  = self.cent1.get()
+            self.speed = int(self.cent2.get())
+            self.timeout = int(self.cent3.get())
+            Composer.cas_prn = Network(self.address, self.speed, self.timeout)
+##            Composer.cas_prn = Network("192.168.1.101", 9100, 60)
+            self.address  = self.kent1.get()
+            self.speed = int(self.kent2.get())
+            self.timeout = int(self.kent3.get())
+            Composer.kit_prn = Network(self.address, self.speed, self.timeout)
+##            Composer.kit_prn = Network("192.168.1.101", 9100, 60)
         Composer.ok = self.abilita.get()
         Composer.delivery = self.bcodes[self.bcode.get()]
-        ##  Controllo
-        print('Il tipo di distribuzione scelto è ', Composer.delivery)
         Composer.cnfdir = self.c_dir.get()
         Composer.cnf_file = Composer.cnfdir+'/config.txt'
         Composer.registry = Composer.cnfdir+'/registry.txt'

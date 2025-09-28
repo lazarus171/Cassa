@@ -35,9 +35,9 @@ def converti(testa, spazi, coda):
     
 def st_intest(vretti, tipo):
     'Stampa la stringa come intestazione di scontrino'
-    #Sceglie la stringa in base al tipo (0=cliente, 1=cucina, 2=bar, 3=sconto, 4=panini)
+    #Sceglie la stringa in base al tipo (0=cliente, 1=cucina, 2=bar, 3=sconto, 4=panini, 5=dispensa, 6=resoconto)
     if tipo == 0:
-        stringa="ASSOCIAZIONE NAZIONALE ALPINI\nGruppo \"S. Zollet\"\nSanta Giustina"
+        stringa="ASSOCIAZIONE NAZIONALE ALPINI\nGruppo \"S. Zollet\"\nSanta Giustina\n\nPromemoria cliente"
     elif tipo == 1:
         stringa = 'COMANDA CUCINA'
     elif tipo == 2:
@@ -46,6 +46,10 @@ def st_intest(vretti, tipo):
         stringa = 'ASSOCIAZIONE NAZIONALE ALPINI\nGruppo \"S. Zollet\"\nSanta Giustina\nBUONO SCONTO - RESTO'
     elif tipo == 4:
         stringa = 'COMANDA PANINI'
+    elif tipo == 5:
+        stringa = "ASSOCIAZIONE NAZIONALE ALPINI\nGruppo \"S. Zollet\"\nSanta Giustina\n\nCONTROLLO DISPENSA"
+    elif tipo == 6:
+        stringa = "ASSOCIAZIONE NAZIONALE ALPINI\nGruppo \"S. Zollet\"\nSanta Giustina\n\nRESOCONTO GIORNATA"
     #Controllo connessione attiva
     if vretti.is_online() == False:
         vretti.open()
@@ -65,7 +69,7 @@ def st_intest(vretti, tipo):
                 False, #custom_size
                 )
     vretti.textln(stringa)
-    vretti.ln(3)
+    vretti.ln(1)
 
 def st_fondo(vretti, stringa, tipo):
     'Stampa la stringa come fondo di scontrino'

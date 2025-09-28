@@ -4,6 +4,11 @@
 2. [Diagramma di flusso](#diagramma-di-flusso)
 3. [Descrizione dei files di testo](#descrizione-dei-files-di-testo)
 4. [Istruzioni per l'utilizzo](#istruzioni-per-lutilizzo)
+
+## Pacchetti Python installati
+-	python-escpos per la gestione delle stampanti;
+-	python-barcode per la gestione dei codici a barre;
+-	pillow per alcune gestioni grafiche.
  
 ## Descrizione generale della struttura
 - *C:/Cassa/*

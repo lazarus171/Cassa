@@ -32,11 +32,11 @@ z.alert_img.append(ph)
 
 ##        Imposta l'immagine del gruppo
 image=Image.open(z.cnfdir+'/Logo_Gruppo.png')
-image = image.resize((150, 150))
+image = image.resize((100, 100))
 ph_logo = ImageTk.PhotoImage(image)
 ##        Imposta l'immagine dell'ANA
 image=Image.open(z.cnfdir+'/Logo_Ana.png')
-image = image.resize((200, 200))
+image = image.resize((150, 150))
 ph_logo_ana = ImageTk.PhotoImage(image)
 
 ##        Crea i frame per il packaging
