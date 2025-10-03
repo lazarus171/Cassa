@@ -18,26 +18,22 @@ b_list = []
 
 ##        Imposta la lista delle luci di allerta
 image=Image.open(z.cnfdir+'/green_b.png')
-image = image.resize((28, 28))
+image = image.resize((24, 24))
 ph = ImageTk.PhotoImage(image)
 z.alert_img.append(ph)
 image=Image.open(z.cnfdir+'/yellow_b.png')
-image = image.resize((28, 28))
+image = image.resize((24, 24))
 ph = ImageTk.PhotoImage(image)
 z.alert_img.append(ph)
 image=Image.open(z.cnfdir+'/red_b.png')
-image = image.resize((28, 28))
+image = image.resize((24, 24))
 ph = ImageTk.PhotoImage(image)
 z.alert_img.append(ph)
 
 ##        Imposta l'immagine del gruppo
 image=Image.open(z.cnfdir+'/Logo_Gruppo.png')
-image = image.resize((100, 100))
+image = image.resize((80, 80))
 ph_logo = ImageTk.PhotoImage(image)
-##        Imposta l'immagine dell'ANA
-image=Image.open(z.cnfdir+'/Logo_Ana.png')
-image = image.resize((150, 150))
-ph_logo_ana = ImageTk.PhotoImage(image)
 
 ##        Crea i frame per il packaging
 t_frame = tk.Frame(frame, bg='green')## superiore
@@ -55,14 +51,15 @@ l_subfr.pack(side='left', fill='both', expand=1)
 c_subfr.pack(side='left', fill='both', expand=1)
 r_subfr.pack(side='left', fill='both', expand=1)
 
-t_lab=tk.Label(t_frame, text='Gruppo Alpini "Sincero Zollet" - Santa Giustina', font=('Times', 36, 'bold'), fg='gold', bg='green')
-logo_lab=tk.Label(t_frame, image=ph_logo, bg='green')##, font=('Times', 24, 'bold'), fg='gold')
-logo_ana=tk.Label(t_frame, image=ph_logo_ana, bg='green')##, font=('Times', 24, 'bold'), fg='gold')
-logo_lab.pack(side='left', fill='x', expand=1)
+t_lab=tk.Label(t_frame, text='Gruppo Alpini "Sincero Zollet" - Santa Giustina', font=('Times', 28, 'bold'), fg='gold', bg='green')
+logo_left=tk.Label(t_frame, image=ph_logo, bg='green')
+logo_right=tk.Label(t_frame, image=ph_logo, bg='green')
+logo_left.pack(side='left', fill='x', expand=1)
 t_lab.pack(side='left', fill='x', expand=1)
-logo_ana.pack(side='left', fill='x', expand=1)
+logo_right.pack(side='left', fill='x', expand=1)
 
-ffont=('Times', 18)
+##  Imposta tipo e dimensione del font da usare sul sinottico
+ffont=('Times', 16)
 
 for i in range(len(z.pricelist)):
     item = tk.IntVar(frame, value = 0)

@@ -156,6 +156,9 @@ class Composer:
         self.cbox=tk.Checkbutton(self.upperframe, variable = self.cb_var,
                                  text='Asporto', font = self.dscfont, bg=self.upperframe.cget('bg'),
                                  activebackground=self.upperframe.cget('bg'))
+        ##  Disabilita il checkbutton ASPORTO per cassa panini
+        self.cbox.config(state='disabled')
+        
         self.boxlist = []
         Composer.disc_var = tk.IntVar(self.wd, value = 1)
         for item in Composer.discounts:
