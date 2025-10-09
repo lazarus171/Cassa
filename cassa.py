@@ -103,13 +103,13 @@ p_right.pack(side='left', fill='none', expand=1)
 p_right1.pack(side='right', fill='none', expand=1)
 ##        Esegue il packaging dei widget
 for item in c_list:
-    item[0].pack(padx=10, pady=10)
-    item[1].pack(expand=0, padx=10, pady=10)
-    item[2].pack(expand=0, padx=10, pady=10)
+    item[0].pack(expand=0, fill='y', padx=10, pady=5)
+    item[1].pack(expand=0, fill='y', padx=10, pady=5)
+    item[2].pack(expand=0, fill='y', padx=10, pady=5)
 for item in b_list:
-    item[0].pack(expand=0, padx=10, pady=10)
-    item[1].pack(padx=10, pady=10)
-    item[2].pack(padx=10, pady=10)
+    item[0].pack(expand=0, fill='y', padx=10, pady=5)
+    item[1].pack(expand=0, fill='y', padx=10, pady=5)
+    item[2].pack(expand=0, fill='y', padx=10, pady=5)
 ##        Esegue il packaging dei frame
 t_frame.pack(side='top', fill='both', expand=1)
 b_frame.pack(side='bottom', fill='both', expand=1)

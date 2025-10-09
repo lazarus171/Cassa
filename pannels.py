@@ -25,6 +25,7 @@ class Composer:
     destination = ['name', 'table'] #Lista contenente nome e numero del tavolo
     bkable_names = []
     bkable_max = []
+    footer = ''
     
 ##    Calcolate internamente alla classe
     connvar = []
@@ -58,6 +59,9 @@ class Composer:
 ##        Inizializza l'icona x l'app
                 elif self.line[0] == 'icn':
                     Composer.icon = self.cnfdir+'/'+self.line[1]
+##        Inizializza l'immagine footer
+                elif self.line[0] == 'ftr':
+                    Composer.footer = self.cnfdir+'/'+self.line[1]
 ##        Inizializza i prenotabili
                 elif self.line[0] == 'bkg':
                     self.line[2] = int(self.line[2])
@@ -157,7 +161,7 @@ class Composer:
                                  text='Asporto', font = self.dscfont, bg=self.upperframe.cget('bg'),
                                  activebackground=self.upperframe.cget('bg'))
         ##  Disabilita il checkbutton ASPORTO per cassa panini
-        self.cbox.config(state='disabled')
+        ##  self.cbox.config(state='disabled')
         
         self.boxlist = []
         Composer.disc_var = tk.IntVar(self.wd, value = 1)
@@ -339,11 +343,11 @@ class Composer:
             st_intest(Composer.cas_prn, 0)
             st_corpo(Composer.cas_prn, self.com_str)
             if Composer.delivery == 'barcode':
-                st_fondo(Composer.cas_prn, bcs(Composer.progress), 1)
+                st_fondo(Composer.cas_prn, bcs(Composer.progress), 1, Composer.footer)
             elif Composer.delivery == 'tablenum':
                 pass
             elif Composer.delivery == 'other':
-                st_fondo(Composer.cas_prn, '', 0)
+                st_fondo(Composer.cas_prn, '', 0, Composer.footer)
         else:
             print('Scontrino cliente ok')
             if Composer.delivery == 'tablenum':
@@ -369,11 +373,11 @@ class Composer:
                 if Composer.delivery == 'other':
                     st_intest(Composer.kit_prn, 4)
                     st_corpo(Composer.kit_prn, self.com_kit)
-                    st_fondo(Composer.kit_prn, Composer.delivery, 4)
+                    st_fondo(Composer.kit_prn, Composer.delivery, 4, Composer.footer)
                 elif Composer.delivery == 'barcode':
                     st_intest(Composer.kit_prn, 1)
                     st_corpo(Composer.kit_prn, self.com_kit)
-                    st_fondo(Composer.kit_prn, bcs(Composer.progress), 1)
+                    st_fondo(Composer.kit_prn, bcs(Composer.progress), 1, Composer.footer)
                 elif Composer.delivery == 'tablenum':
                     st_intest(Composer.kit_prn, 1)
                     st_corpo(Composer.kit_prn, self.com_kit)
@@ -391,7 +395,7 @@ class Composer:
             if Composer.ok == True:
                 st_intest(Composer.cas_prn, 2)
                 st_corpo(Composer.cas_prn, self.com_bar)
-                st_fondo(Composer.cas_prn, bcs(Composer.progress), 2)
+                st_fondo(Composer.cas_prn, bcs(Composer.progress), 2, Composer.footer)
             else:
                 print('Scontrino bar ok')
 ##        Stampa l'eventuale resto da buoni sconto
@@ -403,10 +407,16 @@ class Composer:
             if Composer.ok == True:
                 st_intest(Composer.cas_prn, 3)
                 st_sconto(Composer.cas_prn, self.dsc_str)
-                st_fondo(Composer.cas_prn, '', 3)
+                st_fondo(Composer.cas_prn, '', 3, Composer.footer)
             else:
                 print('Scontrino sconto ok')
+##          Azzera le variabili utilizzate
         Composer.order = []
+        Composer.ticket = 0.00
+        Composer.disc_var = 0
+        Composer.disc_type = 0
+        Composer.disc_amount=0
+    
 
     def galley_status(self):
         self.gal_com = []
@@ -652,7 +662,7 @@ class Composer:
         self.wcf.title('Configurazione')
         self.wcf.config(background='Red')
         self.c_dir=tk.StringVar(self.wcf)
-        self.c_dir.set('C:/CassaMostraMercato2025/Files')
+        self.c_dir.set('C:/GitHub/Cassa/Files')
         self.df=tk.Frame(self.wcf, bg=self.bg1)
         self.df.pack(fill='both', expand=1, padx=10, pady=10)
         self.dlab = tk.Label(self.df, font=self.wfont, bg=self.bg1, text='Directory di configurazione')
@@ -663,7 +673,7 @@ class Composer:
         self.dent.pack(side = 'left', fill='both', expand=1, padx=10, pady=10)
         self.dbt.pack(side='left', fill='both', expand=1, padx=10, pady=10)
         self.cf=tk.Frame(self.wcf, bg=self.bg2)
-        self.cf.pack(fill='both', expand=1, padx=10)#, pady=10)
+        self.cf.pack(fill='both', expand=1, padx=10)
         self.clab=tk.Label(self.cf, text='Stampante cassa\t', font=self.wfont, bg=self.cf.cget('bg'))
         self.cent1=tk.Entry(self.cf, font=self.wfont)
         self.cent1.insert(0, '192.168.1.101')
@@ -676,7 +686,7 @@ class Composer:
         self.cent2.pack(side='left', fill='both', expand=1, padx=10, pady=10)
         self.cent3.pack(side='left', fill='both', expand=1, padx=10, pady=10)
         self.kf=tk.Frame(self.wcf, bg=self.bg2)
-        self.kf.pack(fill='both', expand=1, padx=10)#, pady=10)
+        self.kf.pack(fill='both', expand=1, padx=10)
         self.klab=tk.Label(self.kf, text='Stampante cucina\t', bg=self.kf.cget('bg'), font=self.wfont)
         self.kent1=tk.Entry(self.kf, font=self.wfont)
         self.kent1.insert(0, '192.168.1.101')

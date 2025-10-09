@@ -39,13 +39,13 @@ def st_intest(vretti, tipo):
     if tipo == 0:
         stringa="ASSOCIAZIONE NAZIONALE ALPINI\nGruppo \"S. Zollet\"\nSanta Giustina\n\nPromemoria cliente"
     elif tipo == 1:
-        stringa = 'COMANDA CUCINA'
+        stringa = "ASSOCIAZIONE NAZIONALE ALPINI\nGruppo \"S. Zollet\"\nSanta Giustina\n\nCOMANDA CUCINA"
     elif tipo == 2:
-        stringa = 'COMANDA BAR'
+        stringa = "ASSOCIAZIONE NAZIONALE ALPINI\nGruppo \"S. Zollet\"\nSanta Giustina\n\nCOMANDA BAR"
     elif tipo == 3:
-        stringa = 'ASSOCIAZIONE NAZIONALE ALPINI\nGruppo \"S. Zollet\"\nSanta Giustina\nBUONO SCONTO - RESTO'
+        stringa = "ASSOCIAZIONE NAZIONALE ALPINI\nGruppo \"S. Zollet\"\nSanta Giustina\nBUONO SCONTO - RESTO"
     elif tipo == 4:
-        stringa = 'COMANDA PANINI'
+        stringa = "ASSOCIAZIONE NAZIONALE ALPINI\nGruppo \"S. Zollet\"\nSanta Giustina\n\nCOMANDA PANINI"
     elif tipo == 5:
         stringa = "ASSOCIAZIONE NAZIONALE ALPINI\nGruppo \"S. Zollet\"\nSanta Giustina\n\nCONTROLLO DISPENSA"
     elif tipo == 6:
@@ -71,7 +71,7 @@ def st_intest(vretti, tipo):
     vretti.textln(stringa)
     vretti.ln(1)
 
-def st_fondo(vretti, stringa, tipo):
+def st_fondo(vretti, stringa, tipo, img):
     'Stampa la stringa come fondo di scontrino'
     
     #Controllo connessione attiva
@@ -96,6 +96,7 @@ def st_fondo(vretti, stringa, tipo):
     #Sceglie la stringa in base al tipo (0=cliente, 1=cucina, 2=bar, 3=sconto, 4=panini)
     if tipo == 0 or tipo == 3:
         vretti.textln('ARRIVEDERCI E GRAZIE!')
+        vretti.image(img, center = True)
     elif tipo == 1:
         vretti.barcode(stringa, 'EAN8', 255, 6, 'BELOW', 'A',True)
         vretti.buzzer(3, 2)
@@ -103,6 +104,7 @@ def st_fondo(vretti, stringa, tipo):
         vretti.textln('Copia per il bar')
     elif tipo == 4:
         vretti.textln('Copia per il chiosco panini')
+    vretti.ln(2)
     vretti.cut()
     vretti.close()
 
@@ -114,6 +116,7 @@ def st_corpo(vretti, str_list):
     vretti.set_with_default()
     for item in str_list:
         vretti.textln(item)
+        vretti.ln(1)
 
 def st_sconto(vretti, str_list):
     'Stampa il corpo del buono resto'
@@ -136,7 +139,8 @@ def st_sconto(vretti, str_list):
                 False, #custom_size
                 )
     for item in str_list:
-        vretti.textln(item)      
+        vretti.textln(item)
+        vretti.ln(1)
 
 def bkd_tot(datafile, names):
     df = open(datafile, 'r')
