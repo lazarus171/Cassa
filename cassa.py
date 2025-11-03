@@ -64,7 +64,7 @@ ffont=('Times', 16)
 for i in range(len(z.pricelist)):
     item = tk.IntVar(frame, value = 0)
     z.connvar.append(item)  
-##            Imposta la giusta lista e i relativi frame
+##  Imposta la giusta lista e i relativi frame
     item=z.pricelist[i]
     if item[0] == 'c':
         lista = c_list

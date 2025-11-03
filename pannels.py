@@ -108,7 +108,16 @@ class Composer:
                 else:
                     self.current = self.next_
     
-        
+    def partial(self):
+        '''Restituisce il totale istantaneo dell'ordine'''
+        self.parziale=0
+        for self.i in range(len(Composer.connvar)):
+            self.line = Composer.pricelist[self.i]
+            self.line[3] = Composer.connvar[self.i].get()
+            self.line[4]=self.line[3]*self.line[2]
+            self.parziale = self.parziale+self.line[4]
+        return self.parziale
+
     def update(self):
 ##        Procede con la composizione registrando i dati nella classe
 ##        Imposta il numero di scontrino
